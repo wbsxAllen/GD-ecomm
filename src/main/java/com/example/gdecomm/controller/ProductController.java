@@ -48,7 +48,8 @@ public class ProductController {
 
     @GetMapping("/scale/{scale}")
     public ResponseEntity<List<Product>> getProductsByScale(@PathVariable String scale) {
-        return ResponseEntity.ok(productService.getProductsByScale(scale));
+        String normalizedScale = scale.replace('_', '/');
+        return ResponseEntity.ok(productService.getProductsByScale(normalizedScale));
     }
 
     @GetMapping("/series/{series}")

@@ -25,7 +25,7 @@ public class Product {
     private Integer stock;
 
     @Column(nullable = false)
-    private String scale; // 1/144, 1/100, 1/60
+    private String scale; // 1_144, 1_100, 1_60
 
     @Column(nullable = false)
     private String grade; // HG, MG, PG, RG
