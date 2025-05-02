@@ -22,6 +22,7 @@ public class WebSecurityConfig {
             .authorizeHttpRequests()
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/products/**").permitAll()
+            .requestMatchers("/api/public/categories/**").permitAll()
             .anyRequest().authenticated();
 
         return http.build();
