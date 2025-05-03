@@ -3,15 +3,19 @@ package com.example.gdecomm.controller;
 import com.example.gdecomm.model.ERole;
 import com.example.gdecomm.model.Role;
 import com.example.gdecomm.model.User;
+import com.example.gdecomm.payload.request.LoginRequest;
 import com.example.gdecomm.payload.request.RegisterRequest;
+import com.example.gdecomm.payload.response.JwtResponse;
 import com.example.gdecomm.repository.RoleRepository;
 import com.example.gdecomm.repository.UserRepository;
+import com.example.gdecomm.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -22,6 +26,8 @@ public class AuthController {
     private RoleRepository roleRepository;
     @Autowired
     private PasswordEncoder passwordEncoder;
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
@@ -45,5 +51,18 @@ public class AuthController {
         user.setRoles(Collections.singleton(role));
         userRepository.save(user);
         return ResponseEntity.ok("User registered successfully!");
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
+        User user = userRepository.findByUsername(loginRequest.getUsername())
+                .orElse(null);
+        if (user == null || !passwordEncoder.matches(loginRequest.getPassword(), user.getPassword())) {
+            return ResponseEntity.status(401).body("Invalid username or password");
+        }
+        
+        Set<String> roles = user.getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet());
+        String token = jwtUtil.generateToken(user.getUsername(), roles);
+        return ResponseEntity.ok(new JwtResponse(token, user.getUsername(), roles));
     }
 } 
