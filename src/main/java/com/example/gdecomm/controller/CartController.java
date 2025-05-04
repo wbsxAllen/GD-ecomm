@@ -76,7 +76,7 @@ public class CartController {
         return getCart(userId);
     }
 
-    @PostMapping("/remove")
+    @DeleteMapping("/remove")
     public CartDTO removeFromCart(@RequestParam Long userId, @RequestParam Long productId) {
         Cart cart = cartRepository.findByUserId(userId);
         if (cart == null) return null;
@@ -89,15 +89,21 @@ public class CartController {
         return getCart(userId);
     }
 
-    @PostMapping("/update")
+    @PutMapping("/update")
     public CartDTO updateCartItem(@RequestParam Long userId, @RequestParam Long productId, @RequestParam Integer quantity) {
         Cart cart = cartRepository.findByUserId(userId);
         if (cart == null) return null;
-        cart.getCartItems().forEach(item -> {
+        cart.getCartItems().removeIf(item -> {
             if (item.getProduct().getId().equals(productId)) {
-                item.setQuantity(quantity);
-                cartItemRepository.save(item);
+                if (quantity <= 0) {
+                    cartItemRepository.delete(item);
+                    return true; 
+                } else {
+                    item.setQuantity(quantity);
+                    cartItemRepository.save(item);
+                }
             }
+            return false;
         });
         cartRepository.save(cart);
         return getCart(userId);
