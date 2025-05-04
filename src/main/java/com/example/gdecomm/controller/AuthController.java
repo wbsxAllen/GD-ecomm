@@ -6,6 +6,7 @@ import com.example.gdecomm.model.User;
 import com.example.gdecomm.payload.request.LoginRequest;
 import com.example.gdecomm.payload.request.RegisterRequest;
 import com.example.gdecomm.payload.response.JwtResponse;
+import com.example.gdecomm.payload.dto.UserSimpleDTO;
 import com.example.gdecomm.repository.RoleRepository;
 import com.example.gdecomm.repository.UserRepository;
 import com.example.gdecomm.util.JwtUtil;
@@ -64,5 +65,19 @@ public class AuthController {
         Set<String> roles = user.getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet());
         String token = jwtUtil.generateToken(user.getUsername(), roles);
         return ResponseEntity.ok(new JwtResponse(token, user.getUsername(), roles));
+    }
+
+    @GetMapping("/user/{username}")
+    public ResponseEntity<UserSimpleDTO> getUserByUsername(@PathVariable String username) {
+        User user = userRepository.findByUsername(username).orElse(null);
+        if (user == null) {
+            return ResponseEntity.notFound().build();
+        }
+        UserSimpleDTO dto = new UserSimpleDTO();
+        dto.setId(user.getId());
+        dto.setUsername(user.getUsername());
+        dto.setEmail(user.getEmail());
+        dto.setRoles(user.getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()));
+        return ResponseEntity.ok(dto);
     }
 } 

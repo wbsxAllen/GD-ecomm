@@ -23,7 +23,8 @@ public class WebSecurityConfig {
             .requestMatchers("/api/auth/**").permitAll()
             .requestMatchers("/api/products/**").permitAll()
             .requestMatchers("/api/public/categories/**").permitAll()
-            .anyRequest().permitAll();
+            .requestMatchers("/api/cart/**").permitAll()
+            .anyRequest().authenticated();
 
         return http.build();
     }
