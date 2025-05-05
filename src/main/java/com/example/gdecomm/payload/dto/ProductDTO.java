@@ -19,4 +19,5 @@ public class ProductDTO {
     private String series;
     private String imageUrl;
     private Boolean isAvailable;
+    private Long storeId;
 } 
