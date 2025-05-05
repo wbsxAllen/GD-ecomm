@@ -37,4 +37,8 @@ public class Product {
 
     @Column(nullable = false)
     private Boolean isAvailable = true;
+
+    @ManyToOne
+    @JoinColumn(name = "store_id", nullable = false)
+    private Store store;
 } 

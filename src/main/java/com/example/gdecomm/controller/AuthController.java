@@ -3,12 +3,14 @@ package com.example.gdecomm.controller;
 import com.example.gdecomm.model.ERole;
 import com.example.gdecomm.model.Role;
 import com.example.gdecomm.model.User;
+import com.example.gdecomm.model.Store;
 import com.example.gdecomm.payload.request.LoginRequest;
 import com.example.gdecomm.payload.request.RegisterRequest;
 import com.example.gdecomm.payload.response.JwtResponse;
 import com.example.gdecomm.payload.dto.UserSimpleDTO;
 import com.example.gdecomm.repository.RoleRepository;
 import com.example.gdecomm.repository.UserRepository;
+import com.example.gdecomm.repository.StoreRepository;
 import com.example.gdecomm.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,6 +31,8 @@ public class AuthController {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private JwtUtil jwtUtil;
+    @Autowired
+    private StoreRepository storeRepository;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
@@ -51,6 +55,16 @@ public class AuthController {
         Role role = roleRepository.findByName(roleEnum).orElseGet(() -> roleRepository.save(new Role(roleEnum)));
         user.setRoles(Collections.singleton(role));
         userRepository.save(user);
+
+        if (roleEnum == ERole.ROLE_SELLER) {
+            Store store = new Store();
+            store.setName(user.getUsername() + "'s store");
+            store.setDescription("Welcome!");
+            store.setSeller(user);
+            store.setIsActive(true);
+            storeRepository.save(store);
+        }
+
         return ResponseEntity.ok("User registered successfully!");
     }
 
