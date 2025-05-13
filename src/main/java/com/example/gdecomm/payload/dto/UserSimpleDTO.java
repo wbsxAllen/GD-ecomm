@@ -13,4 +13,8 @@ public class UserSimpleDTO {
     private String username;
     private String email;
     private Set<String> roles;
+    private String avatar;
+    private String gender;
+    private java.time.LocalDate birthday;
+    private String signature;
 } 

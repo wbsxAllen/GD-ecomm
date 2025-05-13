@@ -49,6 +49,10 @@ public class AuthController {
         user.setEmail(signUpRequest.getEmail());
         user.setFirstName(signUpRequest.getFirstName());
         user.setLastName(signUpRequest.getLastName());
+        user.setAvatar(signUpRequest.getAvatar());
+        user.setGender(signUpRequest.getGender());
+        user.setBirthday(signUpRequest.getBirthday());
+        user.setSignature(signUpRequest.getSignature());
         user.setEnabled(true);
         // give role
         ERole roleEnum = signUpRequest.getRole().equalsIgnoreCase("SELLER") ? ERole.ROLE_SELLER : ERole.ROLE_BUYER;
@@ -92,6 +96,10 @@ public class AuthController {
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
         dto.setRoles(user.getRoles().stream().map(r -> r.getName().name()).collect(java.util.stream.Collectors.toSet()));
+        dto.setAvatar(user.getAvatar());
+        dto.setGender(user.getGender());
+        dto.setBirthday(user.getBirthday());
+        dto.setSignature(user.getSignature());
         return ResponseEntity.ok(dto);
     }
 } 

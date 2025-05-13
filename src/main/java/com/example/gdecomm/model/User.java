@@ -28,6 +28,18 @@ public class User {
     @Column(nullable = false)
     private String lastName;
 
+    @Column(nullable = true)
+    private String avatar;
+
+    @Column(nullable = true, length = 10)
+    private String gender; // MALE, FEMALE, OTHER
+
+    @Column(nullable = true)
+    private java.time.LocalDate birthday;
+
+    @Column(nullable = true, length = 255)
+    private String signature;
+
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",
