@@ -8,7 +8,7 @@ const Register = () => {
 
   const onFinish = async (values) => {
     try {
-      await request.post('/auth/register', values);
+      await request.post('/auth/register', { ...values, role: 'BUYER' });
       message.success('Registration successful! Please login.');
       navigate('/login');
     } catch (error) {

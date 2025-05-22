@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Card, Row, Col, Typography, Spin } from 'antd';
+import { Card, Row, Col, Typography, Spin, message } from 'antd';
 import { Link } from 'react-router-dom';
+import request from '../services/request';
 
 const { Title } = Typography;
 
@@ -9,17 +10,10 @@ const ProductList = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Fetch product list from backend API
-    // Using mock data for now
-    setTimeout(() => {
-      setProducts([
-        { id: 1, name: 'Product 1', price: 99.99, image: 'https://via.placeholder.com/200' },
-        { id: 2, name: 'Product 2', price: 149.99, image: 'https://via.placeholder.com/200' },
-        { id: 3, name: 'Product 3', price: 199.99, image: 'https://via.placeholder.com/200' },
-        { id: 4, name: 'Product 4', price: 299.99, image: 'https://via.placeholder.com/200' },
-      ]);
-      setLoading(false);
-    }, 500);
+    request.get('/products')
+      .then(res => setProducts(res.data))
+      .catch(() => message.error('Failed to load products'))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
@@ -34,7 +28,7 @@ const ProductList = () => {
               <Link to={`/products/${product.id}`}>
                 <Card
                   hoverable
-                  cover={<img alt={product.name} src={product.image} />}
+                  cover={<img alt={product.name} src={product.imageUrl || 'https://via.placeholder.com/200'} />}
                 >
                   <Card.Meta
                     title={product.name}
