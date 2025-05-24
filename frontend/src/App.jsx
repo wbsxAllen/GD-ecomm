@@ -1,44 +1,44 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Layout } from 'antd';
-import Navbar from './components/Navbar';
-import Home from './pages/Home';
-import Login from './pages/Login';
-import Register from './pages/Register';
-import ProductList from './pages/ProductList';
-import ProductDetail from './pages/ProductDetail';
-import Cart from './pages/Cart';
-import Orders from './pages/Orders';
-import Profile from './pages/Profile';
-import './App.css';
-
-const { Header, Content, Footer } = Layout;
+import { Provider } from 'react-redux';
+import store from './store/store';
+import Navbar from './components/shared/Navbar';
+import Home from './components/home/Home';
+import Products from './components/products/Products';
+import Cart from './components/cart/Cart';
+import Checkout from './components/checkout/Checkout';
+import Login from './components/auth/LogIn';
+import Register from './components/auth/Register';
+import PrivateRoute from './components/PrivateRoute';
+import ErrorPage from './components/shared/ErrorPage';
 
 function App() {
   return (
-    <Router>
-      <Layout className="layout">
-        <Header>
+    <Provider store={store}>
+      <Router>
+        <div className="min-h-screen bg-gray-50">
           <Navbar />
-        </Header>
-        <Content style={{ padding: '0 50px', marginTop: 64 }}>
-          <div className="site-layout-content">
+          <main className="container mx-auto px-4 py-8">
             <Routes>
               <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/cart" element={<Cart />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
-              <Route path="/products" element={<ProductList />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/profile" element={<Profile />} />
+              <Route
+                path="/checkout"
+                element={
+                  <PrivateRoute>
+                    <Checkout />
+                  </PrivateRoute>
+                }
+              />
+              <Route path="*" element={<ErrorPage />} />
             </Routes>
-          </div>
-        </Content>
-        <Footer style={{ textAlign: 'center' }}>
-          E-Commerce ©{new Date().getFullYear()} Created by Your Company
-        </Footer>
-      </Layout>
-    </Router>
+          </main>
+        </div>
+      </Router>
+    </Provider>
   );
 }
 
