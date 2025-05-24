@@ -11,6 +11,8 @@ import com.example.gdecomm.repository.CartRepository;
 import com.example.gdecomm.repository.ProductRepository;
 import com.example.gdecomm.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -29,12 +31,17 @@ public class CartController {
     @Autowired
     private UserRepository userRepository;
 
-    @GetMapping("/{userId}")
-    public CartDTO getCart(@PathVariable Long userId) {
-        Cart cart = cartRepository.findByUserId(userId);
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return userRepository.findByUsername(auth.getName()).orElseThrow();
+    }
+
+    @GetMapping
+    public CartDTO getCart() {
+        User user = getCurrentUser();
+        Cart cart = cartRepository.findByUserId(user.getId());
         if (cart == null) {
             cart = new Cart();
-            User user = userRepository.findById(userId).orElseThrow();
             cart.setUser(user);
             cart = cartRepository.save(cart);
         }
@@ -42,17 +49,18 @@ public class CartController {
                 .map(item -> new CartItemDTO(
                         item.getProduct().getId(),
                         item.getProduct().getName(),
-                        item.getQuantity()
+                        item.getQuantity(),
+                        item.getProduct().getPrice().doubleValue()
                 )).collect(Collectors.toList());
-        return new CartDTO(cart.getId(), userId, items);
+        return new CartDTO(cart.getId(), user.getId(), items);
     }
 
     @PostMapping("/add")
-    public CartDTO addToCart(@RequestParam Long userId, @RequestParam Long productId, @RequestParam Integer quantity) {
-        Cart cart = cartRepository.findByUserId(userId);
+    public CartDTO addToCart(@RequestParam Long productId, @RequestParam Integer quantity) {
+        User user = getCurrentUser();
+        Cart cart = cartRepository.findByUserId(user.getId());
         if (cart == null) {
             cart = new Cart();
-            User user = userRepository.findById(userId).orElseThrow();
             cart.setUser(user);
             cart = cartRepository.save(cart);
         }
@@ -73,12 +81,13 @@ public class CartController {
             cart.getCartItems().add(item);
             cartRepository.save(cart);
         }
-        return getCart(userId);
+        return getCart();
     }
 
     @DeleteMapping("/remove")
-    public CartDTO removeFromCart(@RequestParam Long userId, @RequestParam Long productId) {
-        Cart cart = cartRepository.findByUserId(userId);
+    public CartDTO removeFromCart(@RequestParam Long productId) {
+        User user = getCurrentUser();
+        Cart cart = cartRepository.findByUserId(user.getId());
         if (cart == null) return null;
         cart.getCartItems().removeIf(item -> {
             boolean match = item.getProduct().getId().equals(productId);
@@ -86,12 +95,13 @@ public class CartController {
             return match;
         });
         cartRepository.save(cart);
-        return getCart(userId);
+        return getCart();
     }
 
     @PutMapping("/update")
-    public CartDTO updateCartItem(@RequestParam Long userId, @RequestParam Long productId, @RequestParam Integer quantity) {
-        Cart cart = cartRepository.findByUserId(userId);
+    public CartDTO updateCartItem(@RequestParam Long productId, @RequestParam Integer quantity) {
+        User user = getCurrentUser();
+        Cart cart = cartRepository.findByUserId(user.getId());
         if (cart == null) return null;
         cart.getCartItems().removeIf(item -> {
             if (item.getProduct().getId().equals(productId)) {
@@ -106,16 +116,17 @@ public class CartController {
             return false;
         });
         cartRepository.save(cart);
-        return getCart(userId);
+        return getCart();
     }
 
     @PostMapping("/clear")
-    public CartDTO clearCart(@RequestParam Long userId) {
-        Cart cart = cartRepository.findByUserId(userId);
+    public CartDTO clearCart() {
+        User user = getCurrentUser();
+        Cart cart = cartRepository.findByUserId(user.getId());
         if (cart == null) return null;
         cart.getCartItems().forEach(cartItemRepository::delete);
         cart.getCartItems().clear();
         cartRepository.save(cart);
-        return getCart(userId);
+        return getCart();
     }
 } 
