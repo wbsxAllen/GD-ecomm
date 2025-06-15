@@ -3,6 +3,7 @@ package com.example.gdecomm.security;
 import com.example.gdecomm.util.JwtUtil;
 import com.example.gdecomm.model.User;
 import com.example.gdecomm.repository.UserRepository;
+import com.example.gdecomm.util.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +28,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private JwtUtil jwtUtil;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RedisService redisService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -34,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         String header = request.getHeader("Authorization");
         if (StringUtils.hasText(header) && header.startsWith("Bearer ")) {
             String token = header.substring(7);
-            if (jwtUtil.validateToken(token)) {
+            if (jwtUtil.validateToken(token) && !redisService.isBlacklisted(token)) {
                 String username = jwtUtil.getUsernameFromToken(token);
                 Set<String> roles = jwtUtil.getRolesFromToken(token);
                 User user = userRepository.findByUsername(username).orElse(null);

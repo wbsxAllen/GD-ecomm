@@ -1,45 +1,62 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { Provider } from 'react-redux';
-import store from './store/store';
-import Navbar from './components/shared/Navbar';
-import Home from './components/home/Home';
-import Products from './components/products/Products';
-import Cart from './components/cart/Cart';
-import Checkout from './components/checkout/Checkout';
-import Login from './components/auth/LogIn';
-import Register from './components/auth/Register';
-import PrivateRoute from './components/PrivateRoute';
-import ErrorPage from './components/shared/ErrorPage';
+import React, { useState, useEffect } from 'react'
+import './App.css'
+import Products from './components/products/Products'
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import Home from './components/home/Home'
+import Navbar from './components/shared/Navbar'
+import Contact from './components/Contact'
+import { Toaster } from 'react-hot-toast'
+import Cart from './components/cart/Cart'
+import LogIn from './components/auth/LogIn'
+import PrivateRoute from './components/PrivateRoute'
+import Register from './components/auth/Register'
+import Checkout from './components/checkout/Checkout'
+import PaymentConfirmation from './components/checkout/PaymentConfirmation'
+import Profile from './components/Profile'
+import Orders from './components/Orders'
+import { useDispatch } from 'react-redux'
+import axios from 'axios'
 
 function App() {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      axios.get(`${import.meta.env.VITE_API_BASE_URL}/cart`, {
+        headers: { Authorization: `Bearer ${token}` }
+      }).then(res => {
+        dispatch({ type: "GET_USER_CART_PRODUCTS", payload: res.data.items })
+      })
+    }
+  }, [dispatch])
+
   return (
-    <Provider store={store}>
+    <React.Fragment>
       <Router>
-        <div className="min-h-screen bg-gray-50">
-          <Navbar />
-          <main className="container mx-auto px-4 py-8">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/checkout"
-                element={
-                  <PrivateRoute>
-                    <Checkout />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="*" element={<ErrorPage />} />
-            </Routes>
-          </main>
-        </div>
+        <Navbar />
+        <Routes>
+          <Route path='/' element={ <Home />}/>
+          <Route path='/products' element={ <Products />}/>
+          <Route path='/profile' element={ <Profile />}/>
+          <Route path='/profile/orders' element={ <Orders />}/>
+          <Route path='/contact' element={ <Contact />}/>
+          <Route path='/cart' element={ <Cart />}/>
+        
+          <Route path='/' element={<PrivateRoute />}>
+            <Route path='/checkout' element={ <Checkout />}/>
+            <Route path='/order-confirm' element={ <PaymentConfirmation />}/>
+          </Route>
+
+          <Route path='/' element={<PrivateRoute publicPage />}>
+            <Route path='/login' element={ <LogIn />}/>
+            <Route path='/register' element={ <Register />}/>
+          </Route>
+        </Routes>
       </Router>
-    </Provider>
-  );
+      <Toaster position='bottom-center'/>
+    </React.Fragment>
+  )
 }
 
-export default App;
+export default App

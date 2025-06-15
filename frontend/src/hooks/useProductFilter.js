@@ -1,51 +1,41 @@
-import { useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setFilters } from '../store/reducers/ProductReducer';
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { useSearchParams } from "react-router-dom";
+import { fetchProducts } from "../store/actions";
 
-export const useProductFilter = () => {
-  const dispatch = useDispatch();
-  const filters = useSelector((state) => state.products.filters);
+const useProductFilter = () => {
+    const [searchParams] = useSearchParams();
+    const dispatch = useDispatch();
 
-  const updateFilters = useCallback(
-    (newFilters) => {
-      dispatch(setFilters(newFilters));
-    },
-    [dispatch]
-  );
+    useEffect(() => {
+        const params = new URLSearchParams();
 
-  const filterProducts = useCallback(
-    (products) => {
-      return products.filter((product) => {
-        const matchesCategory = !filters.category || product.category === filters.category;
-        const matchesPrice =
-          product.price >= filters.priceRange[0] && product.price <= filters.priceRange[1];
-        return matchesCategory && matchesPrice;
-      });
-    },
-    [filters]
-  );
+        const currentPage = searchParams.get("page")
+            ? Number(searchParams.get("page"))
+            : 1;
 
-  const sortProducts = useCallback(
-    (products) => {
-      const sortedProducts = [...products];
-      switch (filters.sortBy) {
-        case 'price-asc':
-          return sortedProducts.sort((a, b) => a.price - b.price);
-        case 'price-desc':
-          return sortedProducts.sort((a, b) => b.price - a.price);
-        case 'newest':
-          return sortedProducts.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        default:
-          return sortedProducts;
-      }
-    },
-    [filters.sortBy]
-  );
+        params.set("pageNumber", currentPage - 1);
 
-  return {
-    filters,
-    updateFilters,
-    filterProducts,
-    sortProducts,
-  };
-}; 
+        const sortOrder = searchParams.get("sortby") || "asc";
+        const categoryParams = searchParams.get("category") || null;
+        const keyword = searchParams.get("keyword") || null;
+        params.set("sortBy","price");
+        params.set("sortOrder", sortOrder);
+
+        if (categoryParams) {
+            params.set("category", categoryParams);
+        }
+
+        if (keyword) {
+            params.set("keyword", keyword);
+        }
+
+        const queryString = params.toString();
+        console.log("QUERY STRING", queryString);
+        
+        dispatch(fetchProducts(queryString));
+
+    }, [dispatch, searchParams]);
+};
+
+export default useProductFilter;

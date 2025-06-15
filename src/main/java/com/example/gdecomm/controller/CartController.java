@@ -50,7 +50,8 @@ public class CartController {
                         item.getProduct().getId(),
                         item.getProduct().getName(),
                         item.getQuantity(),
-                        item.getProduct().getPrice().doubleValue()
+                        item.getProduct().getPrice().doubleValue(),
+                        item.getProduct().getImageUrl()
                 )).collect(Collectors.toList());
         return new CartDTO(cart.getId(), user.getId(), items);
     }

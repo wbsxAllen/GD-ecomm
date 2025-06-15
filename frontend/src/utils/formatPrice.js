@@ -1,14 +1,11 @@
-export const formatPrice = (price) => {
-  return new Intl.NumberFormat('zh-CN', {
-    style: 'currency',
-    currency: 'CNY',
-  }).format(price);
-};
+export const formatPrice = (amount) => {
+ return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+ }).format(amount);
+}
 
-export const formatDate = (date) => {
-  return new Intl.DateTimeFormat('zh-CN', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  }).format(new Date(date));
-}; 
+
+export const formatPriceCalculation = (quantity, price) => {
+   return (Number(quantity) * Number(price)).toFixed(2);
+  }
