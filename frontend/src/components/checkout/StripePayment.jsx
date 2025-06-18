@@ -11,14 +11,16 @@ const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 const StripePayment = () => {
   const dispatch = useDispatch();
   const { clientSecret } = useSelector((state) => state.auth);
-  const { totalPrice } = useSelector((state) => state.carts);
+  const { orderId, orderTotal } = useSelector((state) => state.orders);
   const { isLoading, errorMessage } = useSelector((state) => state.errors);
 
+  const stripeClientSecret = clientSecret?.clientSecret;
+
   useEffect(() => {
-    if (!clientSecret) {
-      dispatch(createStripePaymentSecret(totalPrice));
+    if (!stripeClientSecret && orderId && orderTotal) {
+      dispatch(createStripePaymentSecret(orderTotal, orderId));
     }
-  }, [clientSecret]);
+  }, [stripeClientSecret, orderId, orderTotal]);
 
   if (isLoading) {
     return (
@@ -28,12 +30,11 @@ const StripePayment = () => {
     )
   }
 
-
   return (
     <>
-      {clientSecret && (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <PaymentForm clientSecret={clientSecret} totalPrice={totalPrice} />
+      {stripeClientSecret && (
+        <Elements stripe={stripePromise} options={{ clientSecret: stripeClientSecret }}>
+          <PaymentForm clientSecret={stripeClientSecret} totalPrice={orderTotal} />
         </Elements>
       )}
     </>

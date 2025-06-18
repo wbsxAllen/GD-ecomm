@@ -239,6 +239,13 @@ export const getUserAddresses = () => async (dispatch, getState) => {
         });
         dispatch({type: "USER_ADDRESS", payload: data});
         dispatch({ type: "IS_SUCCESS" });
+        const { selectedUserCheckoutAddress } = getState().auth;
+        if ((!selectedUserCheckoutAddress || !selectedUserCheckoutAddress.addressId) && Array.isArray(data) && data.length > 0) {
+            const defaultAddr = data.find(addr => addr.isDefault);
+            if (defaultAddr) {
+                dispatch(selectUserCheckoutAddress(defaultAddr));
+            }
+        }
     } catch (error) {
         dispatch({ 
             type: "IS_ERROR",
@@ -304,16 +311,22 @@ export const getUserCart = () => async (dispatch, getState) => {
 
 
 export const createStripePaymentSecret 
-    = (totalPrice) => async (dispatch, getState) => {
+    = (totalPrice, orderId) => async (dispatch, getState) => {
         try {
             dispatch({ type: "IS_FETCHING" });
-            const { data } = await api.post("/order/stripe-client-secret", {
-                "amount": Number(totalPrice) * 100,
-                "currency": "usd"
-              });
+            const token = localStorage.getItem('token');
+            const { data } = await api.post(
+                "/payments/create-payment-intent",
+                {
+                    orderId,
+                    amount: Number(totalPrice) * 100,
+                    currency: "usd"
+                },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
             dispatch({ type: "CLIENT_SECRET", payload: data });
-              localStorage.setItem("client-secret", JSON.stringify(data));
-              dispatch({ type: "IS_SUCCESS" });
+            localStorage.setItem("client-secret", JSON.stringify(data));
+            dispatch({ type: "IS_SUCCESS" });
         } catch (error) {
             console.log(error);
             toast.error(error?.response?.data?.message || "Failed to create client secret");
@@ -324,17 +337,21 @@ export const createStripePaymentSecret
 export const stripePaymentConfirmation 
     = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
         try {
-            const response  = await api.post("/order/users/payments/online", sendData);
-            if (response.data) {
-                localStorage.removeItem("CHECKOUT_ADDRESS");
-                localStorage.removeItem("cartItems");
-                localStorage.removeItem("client-secret");
-                dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
-                dispatch({ type: "CLEAR_CART"});
-                toast.success("Order Accepted");
-              } else {
-                setErrorMesssage("Payment Failed. Please try again.");
-              }
+            const token = localStorage.getItem('token');
+            await api.post("/payments/confirm", {
+                paymentIntentId: sendData.pgPaymentId,
+                status: sendData.pgStatus,
+                message: sendData.pgResponseMessage
+            }, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            await api.post('/cart/clear', {}, { headers: { Authorization: `Bearer ${token}` } });
+            localStorage.removeItem("CHECKOUT_ADDRESS");
+            localStorage.removeItem("cartItems");
+            localStorage.removeItem("client-secret");
+            dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
+            dispatch({ type: "CLEAR_CART"});
+            toast.success("Order Accepted");
         } catch (error) {
             setErrorMesssage("Payment Failed. Please try again.");
         }

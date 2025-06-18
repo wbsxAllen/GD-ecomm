@@ -1,20 +1,42 @@
 import { Badge } from "@mui/material";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaShoppingCart, FaSignInAlt, FaStore, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
 import { IoIosMenu } from "react-icons/io";
 import { RxCross2 } from "react-icons/rx";
-import { useSelector } from "react-redux";
-import { Link, useLocation } from "react-router-dom";
+import { useSelector, useDispatch } from "react-redux";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import UserMenu from "../UserMenu";
 import SidebarDrawer from './SidebarDrawer';
+import { selectUserCheckoutAddress, getUserAddresses } from "../../store/actions";
 
 const Navbar = () => {
     const path = useLocation().pathname;
     const [navbarOpen, setNavbarOpen] = useState(false);
     const { cart } = useSelector((state) => state.carts);
-    const { user, selectedUserCheckoutAddress } = useSelector((state) => state.auth);
+    const { user, selectedUserCheckoutAddress, address } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
+    const navigate = useNavigate();
     
+    const handleSelectAddress = (addr) => {
+        dispatch(selectUserCheckoutAddress(addr));
+        setAddressDropdownOpen(false);
+    };
+
+    const handleGlobalSearch = () => {
+        if (searchTerm && searchTerm.trim() !== "") {
+            navigate(`/products?keyword=${encodeURIComponent(searchTerm)}`);
+        } else {
+            navigate(`/products`);
+        }
+    };
+
+    useEffect(() => {
+        dispatch(getUserAddresses());
+    }, [dispatch]);
+
     return (
         <div className="h-[70px] bg-custom-gradient text-white z-50 flex items-center sticky top-0">
             <SidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
@@ -33,19 +55,58 @@ const Navbar = () => {
                     </button>
                 </div>
 
-                <div className="hidden md:flex items-center mx-4">
-                    <FaMapMarkerAlt className="mr-1 text-lg" />
-                    <div className="flex flex-col leading-tight">
-                        <span className="text-xs">Deliver to</span>
-                        <span className="font-bold text-sm">
-                            {selectedUserCheckoutAddress?.receiverName ? `${selectedUserCheckoutAddress.receiverName}, ${selectedUserCheckoutAddress.city}` : "Select Address"}
-                        </span>
-                    </div>
+                {/* Delivery Address Dropdown */}
+                <div className="hidden md:flex items-center mx-4 relative">
+                    <button
+                        className="flex items-center focus:outline-none"
+                        onClick={() => setAddressDropdownOpen((v) => !v)}
+                    >
+                        <FaMapMarkerAlt className="mr-1 text-lg" />
+                        <div className="flex flex-col leading-tight text-left">
+                            <span className="text-xs">Deliver to</span>
+                            <span className="font-bold text-sm">
+                                {selectedUserCheckoutAddress?.receiverName
+                                    ? `${selectedUserCheckoutAddress.receiverName}, ${selectedUserCheckoutAddress.city}`
+                                    : "Select Address"}
+                            </span>
+                        </div>
+                    </button>
+                    {addressDropdownOpen && (
+                        <div className="absolute left-0 top-full mt-2 w-64 bg-white text-black rounded shadow-lg z-50">
+                            {address && address.length > 0 ? (
+                                address.map((addr) => (
+                                    <div
+                                        key={addr.id || addr.addressId}
+                                        className={`px-4 py-2 cursor-pointer hover:bg-gray-100 ${
+                                            (selectedUserCheckoutAddress?.id || selectedUserCheckoutAddress?.addressId) === (addr.id || addr.addressId)
+                                                ? "bg-gray-200 font-bold"
+                                                : ""
+                                        }`}
+                                        onClick={() => handleSelectAddress(addr)}
+                                    >
+                                        <div className="text-sm">{addr.receiverName}, {addr.city}</div>
+                                        <div className="text-xs text-gray-600">{addr.detail}</div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="px-4 py-2 text-gray-500">No address found</div>
+                            )}
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex flex-1 mx-4 max-w-xl">
-                    <input className="flex-1 px-2 py-1 text-black rounded-l" placeholder="Search products..." />
-                    <button className="bg-yellow-400 px-3 rounded-r">
+                    <input 
+                        className="flex-1 px-2 py-1 text-black rounded-l"
+                        placeholder="Search products..."
+                        value={searchTerm}
+                        onChange={e => setSearchTerm(e.target.value)}
+                        onKeyDown={e => { if (e.key === 'Enter') handleGlobalSearch(); }}
+                    />
+                    <button 
+                        className="bg-yellow-400 px-3 rounded-r"
+                        onClick={handleGlobalSearch}
+                    >
                         <FaSearch className="text-black" />
                     </button>
                 </div>

@@ -1,7 +1,7 @@
 import { useDispatch } from "react-redux";
 import { logOutUser } from "../store/actions";
 import { useNavigate } from "react-router-dom";
-import { FaBoxOpen, FaAddressBook, FaCreditCard } from "react-icons/fa";
+import { FaBoxOpen, FaAddressBook } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const cardStyle = "flex items-center p-6 bg-white rounded-lg shadow hover:shadow-lg transition w-full sm:w-[350px] mb-6";
@@ -31,13 +31,6 @@ const Profile = () => {
           <div>
             <div className="font-bold text-lg">Your Addresses</div>
             <div className="text-gray-600 text-sm">Edit, add, or remove addresses</div>
-          </div>
-        </Link>
-        <Link to="/profile/payments" className={cardStyle}>
-          <FaCreditCard className={iconStyle} />
-          <div>
-            <div className="font-bold text-lg">Your Payments</div>
-            <div className="text-gray-600 text-sm">Manage payment methods</div>
           </div>
         </Link>
       </div>

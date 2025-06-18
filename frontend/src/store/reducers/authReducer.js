@@ -2,7 +2,7 @@ const initialState = {
     user: null,
     address: [],
     clientSecret: null,
-    selectedUserCheckoutAddress: null,
+    selectedUserCheckoutAddress: JSON.parse(localStorage.getItem("CHECKOUT_ADDRESS")) || null,
 }
 
 export const authReducer = (state = initialState, action) => {

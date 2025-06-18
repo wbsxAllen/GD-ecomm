@@ -36,6 +36,14 @@ public class CartController {
         return userRepository.findByUsername(auth.getName()).orElseThrow();
     }
 
+    private User getCurrentUserSafe() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            return null;
+        }
+        return userRepository.findByUsername(auth.getName()).orElse(null);
+    }
+
     @GetMapping
     public CartDTO getCart() {
         User user = getCurrentUser();
@@ -122,10 +130,15 @@ public class CartController {
 
     @PostMapping("/clear")
     public CartDTO clearCart() {
-        User user = getCurrentUser();
+        User user = getCurrentUserSafe();
+        if (user == null) {
+            throw new RuntimeException("User not found or not authenticated");
+        }
         Cart cart = cartRepository.findByUserId(user.getId());
-        if (cart == null) return null;
-        cart.getCartItems().forEach(cartItemRepository::delete);
+        if (cart == null) {
+            return new CartDTO(null, user.getId(), new java.util.ArrayList<>());
+        }
+        cartItemRepository.deleteAll(cart.getCartItems());
         cart.getCartItems().clear();
         cartRepository.save(cart);
         return getCart();

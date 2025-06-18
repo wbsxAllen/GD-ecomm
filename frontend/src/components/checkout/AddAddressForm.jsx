@@ -7,6 +7,10 @@ import Spinners from '../shared/Spinners';
 import toast from 'react-hot-toast';
 import { addUpdateUserAddress } from '../../store/actions';
 
+const countryList = [
+  "Canada", "United States", "China", "Japan", "United Kingdom", "Germany", "France", "Australia", "Other"
+];
+
 const AddAddressForm = ({ address, setOpenAddressModal }) => {
     const dispatch = useDispatch();
     const { btnLoader } = useSelector((state) => state.errors);
@@ -21,6 +25,9 @@ const AddAddressForm = ({ address, setOpenAddressModal }) => {
         });
 
         const onSaveAddressHandler = async (data) => {
+            if (address?.id) {
+                data.id = address.id;
+            }
             dispatch(addUpdateUserAddress(
                 data,
                 toast,
@@ -55,16 +62,21 @@ const AddAddressForm = ({ address, setOpenAddressModal }) => {
                         }
                     </div>
             <div className="flex flex-col gap-4">
-                <InputField
-                    label="Country/Region"
-                    required
+                <div>
+                  <label htmlFor="country" className="block mb-1 font-medium">Country/Region<span className="text-red-500">*</span></label>
+                  <select
                     id="country"
-                    type="text"
-                    message="*Country is required"
-                    placeholder="Enter Country"
-                    register={register}
-                    errors={errors}
-                    />
+                    {...register("country", { required: true })}
+                    className="w-full border rounded px-3 py-2"
+                    defaultValue=""
+                  >
+                    <option value="" disabled>Select country</option>
+                    {countryList.map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                  {errors.country && <span className="text-red-500 text-xs">*Country is required</span>}
+                </div>
                 <InputField
                     label="Full name (First and Last name)"
                     required

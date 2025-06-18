@@ -89,7 +89,7 @@ const Cart = () => {
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             toast.success("下单成功！");
-            fetchCart(); // 下单后刷新购物车
+            fetchCart(); 
         } catch (err) {
             toast.error("下单失败，请重试！");
         }

@@ -16,6 +16,7 @@ import Profile from './components/Profile'
 import Orders from './components/Orders'
 import { useDispatch } from 'react-redux'
 import axios from 'axios'
+import AddressManager from './components/checkout/AddressManager'
 
 function App() {
   const dispatch = useDispatch()
@@ -40,6 +41,7 @@ function App() {
           <Route path='/products' element={ <Products />}/>
           <Route path='/profile' element={ <Profile />}/>
           <Route path='/profile/orders' element={ <Orders />}/>
+          <Route path='/profile/addresses' element={<AddressManager />} />
           <Route path='/contact' element={ <Contact />}/>
           <Route path='/cart' element={ <Cart />}/>
         

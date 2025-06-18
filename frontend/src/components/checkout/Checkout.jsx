@@ -43,7 +43,7 @@ const Checkout = () => {
     };
 
     const handlePlaceOrder = async () => {
-        if (!selectedUserCheckoutAddress?.addressId) {
+        if (!selectedUserCheckoutAddress?.id) {
             toast.error("Please select or add a shipping address!");
             return;
         }
@@ -53,10 +53,10 @@ const Checkout = () => {
         }
         const token = localStorage.getItem('token');
         try {
-            await axios.post(
+            const response = await axios.post(
                 `${import.meta.env.VITE_API_BASE_URL}/orders`,
                 {
-                    addressId: selectedUserCheckoutAddress.addressId,
+                    addressId: selectedUserCheckoutAddress.id,
                     items: cart.map(item => ({
                         productId: item.productId,
                         quantity: item.quantity
@@ -64,8 +64,10 @@ const Checkout = () => {
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
+            dispatch({ type: "SET_ORDER_ID", payload: response.data.id });
+            dispatch({ type: "SET_ORDER_TOTAL", payload: response.data.totalAmount });
             toast.success("Order placed successfully!");
-            navigate('/profile/orders');
+            setActiveStep((prevStep) => prevStep + 1);
         } catch (err) {
             toast.error("Order failed, please try again!");
         }
@@ -100,11 +102,21 @@ const Checkout = () => {
             <div className='mt-5'>
                 {activeStep === 0 && <AddressInfo address={address} />}
                 {activeStep === 1 && <PaymentMethod />}
-                {activeStep === 2 && <OrderSummary 
-                                        totalPrice={totalPrice}
-                                        cart={cart}
-                                        address={selectedUserCheckoutAddress}
-                                        paymentMethod={paymentMethod}/>}
+                {activeStep === 2 && <>
+                    <OrderSummary 
+                        totalPrice={totalPrice}
+                        cart={cart}
+                        address={selectedUserCheckoutAddress}
+                        paymentMethod={paymentMethod}/>
+                    <div className="mt-6 text-right">
+                        <button
+                            className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                            onClick={handlePlaceOrder}
+                        >
+                            Place Order
+                        </button>
+                    </div>
+                </>}
                 {activeStep === 3 && 
                     <>
                         {paymentMethod === "Stripe" ? (
@@ -112,14 +124,6 @@ const Checkout = () => {
                         ) : (
                             <PaypalPayment />
                         )}
-                        <div className="mt-6 text-right">
-                            <button
-                                className="px-6 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-                                onClick={handlePlaceOrder}
-                            >
-                                Place Order
-                            </button>
-                        </div>
                     </>}
             </div>
         )}
@@ -135,7 +139,7 @@ const Checkout = () => {
                     Back
             </Button>
 
-            {activeStep !== steps.length - 1 && (
+            {activeStep !== steps.length - 1 && activeStep !== 2 && (
                 <button
                     disabled={
                         errorMessage || (
