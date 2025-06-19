@@ -17,15 +17,23 @@ const SellerOrders = () => {
           `${import.meta.env.VITE_API_BASE_URL}/orders/seller`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setOrders(data);
+        setOrders(data || []);
       } catch (err) {
-        setError('Failed to load orders.');
+        console.error('Error fetching seller orders:', err);
+        setError(err.response?.data?.message || 'Failed to load orders.');
+        setOrders([]);
       } finally {
         setLoading(false);
       }
     };
     fetchOrders();
   }, []);
+
+  const handleExpandClick = (orderId) => {
+    console.log('Expanding order:', orderId); // Debug log
+    console.log('Order details:', orders.find(o => o.id === orderId)); // Debug log
+    setExpanded(expanded === orderId ? null : orderId);
+  };
 
   if (loading) return <div className="text-center py-10">Loading...</div>;
   if (error) return <div className="text-center text-red-500 py-10">{error}</div>;
@@ -45,7 +53,7 @@ const SellerOrders = () => {
           </tr>
         </thead>
         <tbody>
-          {orders.length === 0 ? (
+          {!orders || orders.length === 0 ? (
             <tr><td colSpan={6} className="text-center py-6">No orders found.</td></tr>
           ) : (
             orders.map(order => (
@@ -54,10 +62,13 @@ const SellerOrders = () => {
                   <td className="p-2">{order.orderNumber}</td>
                   <td className="p-2">{order.userId}</td>
                   <td className="p-2">{order.createTime?.slice(0, 19).replace('T', ' ')}</td>
-                  <td className="p-2">${order.totalAmount}</td>
+                  <td className="p-2">${Number(order.totalAmount).toFixed(2)}</td>
                   <td className="p-2">{order.status}</td>
                   <td className="p-2">
-                    <button className="text-blue-600 underline" onClick={() => setExpanded(expanded === order.id ? null : order.id)}>
+                    <button 
+                      className="text-blue-600 underline"
+                      onClick={() => handleExpandClick(order.id)}
+                    >
                       {expanded === order.id ? 'Hide' : 'Show'}
                     </button>
                   </td>
@@ -77,12 +88,12 @@ const SellerOrders = () => {
                             </tr>
                           </thead>
                           <tbody>
-                            {order.orderItems.map(item => (
+                            {order.items?.map(item => (
                               <tr key={item.id}>
                                 <td className="p-1">{item.productName}</td>
                                 <td className="p-1">{item.quantity}</td>
-                                <td className="p-1">${item.price}</td>
-                                <td className="p-1">${item.subtotal}</td>
+                                <td className="p-1">${Number(item.price).toFixed(2)}</td>
+                                <td className="p-1">${Number(item.quantity * item.price).toFixed(2)}</td>
                               </tr>
                             ))}
                           </tbody>

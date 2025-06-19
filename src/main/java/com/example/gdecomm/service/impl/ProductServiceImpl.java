@@ -4,6 +4,9 @@ import com.example.gdecomm.model.Product;
 import com.example.gdecomm.repository.ProductRepository;
 import com.example.gdecomm.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,6 +20,17 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
+    }
+
+    @Override
+    public List<Product> getAllProducts(String sortOrder) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), "price");
+        return productRepository.findAll(sort);
+    }
+
+    @Override
+    public Page<Product> getAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
 
     @Override
@@ -68,6 +82,49 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<Product> getAvailableProducts() {
         return productRepository.findByIsAvailableTrue();
+    }
+
+    @Override
+    public List<Product> getAvailableProducts(String sortOrder) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), "price");
+        return productRepository.findByIsAvailableTrue(sort);
+    }
+
+    @Override
+    public Page<Product> getAvailableProducts(Pageable pageable) {
+        return productRepository.findByIsAvailableTrue(pageable);
+    }
+
+    @Override
+    public List<Product> searchProductsByName(String name) {
+        return productRepository.findByNameContainingIgnoreCase(name);
+    }
+
+    @Override
+    public List<Product> searchProductsByName(String name, String sortOrder) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), "price");
+        return productRepository.findByNameContainingIgnoreCase(name, sort);
+    }
+
+    @Override
+    public Page<Product> searchProductsByName(String name, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCase(name, pageable);
+    }
+
+    @Override
+    public List<Product> searchAvailableProductsByName(String name) {
+        return productRepository.findByNameContainingIgnoreCaseAndIsAvailableTrue(name);
+    }
+
+    @Override
+    public List<Product> searchAvailableProductsByName(String name, String sortOrder) {
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), "price");
+        return productRepository.findByNameContainingIgnoreCaseAndIsAvailableTrue(name, sort);
+    }
+
+    @Override
+    public Page<Product> searchAvailableProductsByName(String name, Pageable pageable) {
+        return productRepository.findByNameContainingIgnoreCaseAndIsAvailableTrue(name, pageable);
     }
 
     public Product updateProductIsAvailable(Long id, Boolean isAvailable) {

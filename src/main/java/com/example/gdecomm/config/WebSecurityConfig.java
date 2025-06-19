@@ -36,6 +36,7 @@ public class WebSecurityConfig {
                 .requestMatchers("/api/store/list", "/api/store/{id}").permitAll()
                 .requestMatchers("/api/store/**").permitAll()
                 .requestMatchers("/api/orders/**").hasAnyRole("BUYER", "SELLER")
+                .requestMatchers("/api/reviews/**").permitAll()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

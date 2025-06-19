@@ -7,6 +7,10 @@ import com.example.gdecomm.service.OrderService;
 import com.example.gdecomm.repository.UserRepository;
 import com.example.gdecomm.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -15,6 +19,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -54,16 +59,31 @@ public class OrderController {
         return ResponseEntity.ok(convertToDTO(order));
     }
 
-    @GetMapping
+    @GetMapping("/my-orders")
     @PreAuthorize("hasRole('BUYER')")
-    public ResponseEntity<List<OrderDTO>> getUserOrders() {
+    public ResponseEntity<Map<String, Object>> getUserOrders(
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "10") int pageSize) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         
-        List<OrderDTO> orders = orderService.getUserOrders(user).stream()
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createTime"));
+        Page<Order> orderPage = orderService.getUserOrdersPage(user, pageable);
+        
+        List<OrderDTO> orders = orderPage.getContent().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(orders);
+
+        Map<String, Object> response = Map.of(
+            "content", orders,
+            "pageNumber", orderPage.getNumber(),
+            "pageSize", orderPage.getSize(),
+            "totalElements", orderPage.getTotalElements(),
+            "totalPages", orderPage.getTotalPages(),
+            "lastPage", orderPage.isLast()
+        );
+        
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/status/{status}")
@@ -137,7 +157,7 @@ public class OrderController {
                 order.getTotalAmount(),
                 order.getStatus(),
                 itemDTOs,
-                order.getShippingAddress().getId(),
+                order.getShippingAddress(),
                 order.getCreateTime(),
                 order.getPayTime(),
                 order.getShipTime(),

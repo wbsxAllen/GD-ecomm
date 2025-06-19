@@ -1,5 +1,6 @@
 package com.example.gdecomm.payload.dto;
 
+import com.example.gdecomm.model.Address;
 import com.example.gdecomm.model.OrderStatus;
 import lombok.Data;
 import lombok.AllArgsConstructor;
@@ -17,8 +18,8 @@ public class OrderDTO {
     private String orderNumber;
     private BigDecimal totalAmount;
     private OrderStatus status;
-    private List<OrderItemDTO> orderItems;
-    private Long shippingAddressId;
+    private List<OrderItemDTO> items;
+    private Address shippingAddress;
     private LocalDateTime createTime;
     private LocalDateTime payTime;
     private LocalDateTime shipTime;
