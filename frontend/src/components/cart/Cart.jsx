@@ -69,11 +69,11 @@ const Cart = () => {
 
     const handlePlaceOrder = async () => {
         if (!selectedUserCheckoutAddress?.addressId) {
-            toast.error("请先在地址管理中选择或添加收货地址！");
+            toast.error("Please select or add a shipping address in address management!");
             return;
         }
         if (!cart?.items?.length) {
-            toast.error("购物车为空，无法下单！");
+            toast.error("Your cart is empty, cannot place order!");
             return;
         }
         try {
@@ -88,10 +88,10 @@ const Cart = () => {
                 },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
-            toast.success("下单成功！");
+            toast.success("Order placed successfully!");
             fetchCart(); 
         } catch (err) {
-            toast.error("下单失败，请重试！");
+            toast.error("Order failed, please try again!");
         }
     };
 

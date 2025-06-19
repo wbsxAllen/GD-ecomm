@@ -1,7 +1,7 @@
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logOutUser } from "../store/actions";
 import { useNavigate } from "react-router-dom";
-import { FaBoxOpen, FaAddressBook } from "react-icons/fa";
+import { FaBoxOpen, FaAddressBook, FaStore } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const cardStyle = "flex items-center p-6 bg-white rounded-lg shadow hover:shadow-lg transition w-full sm:w-[350px] mb-6";
@@ -10,6 +10,7 @@ const iconStyle = "text-4xl text-blue-500 mr-6";
 const Profile = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { user } = useSelector(state => state.auth);
 
   const handleLogout = () => {
     dispatch(logOutUser(navigate));
@@ -33,6 +34,15 @@ const Profile = () => {
             <div className="text-gray-600 text-sm">Edit, add, or remove addresses</div>
           </div>
         </Link>
+        {user?.roles?.includes('ROLE_SELLER') && (
+          <Link to="/seller/store" className={cardStyle}>
+            <FaStore className={iconStyle} />
+            <div>
+              <div className="font-bold text-lg">My Store</div>
+              <div className="text-gray-600 text-sm">Manage your store, products and orders</div>
+            </div>
+          </Link>
+        )}
       </div>
       <button
         onClick={handleLogout}

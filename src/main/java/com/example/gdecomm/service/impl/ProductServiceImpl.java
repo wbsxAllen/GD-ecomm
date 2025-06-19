@@ -69,4 +69,10 @@ public class ProductServiceImpl implements ProductService {
     public List<Product> getAvailableProducts() {
         return productRepository.findByIsAvailableTrue();
     }
+
+    public Product updateProductIsAvailable(Long id, Boolean isAvailable) {
+        Product existingProduct = getProductById(id);
+        existingProduct.setIsAvailable(isAvailable);
+        return productRepository.save(existingProduct);
+    }
 } 

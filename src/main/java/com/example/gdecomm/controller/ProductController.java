@@ -15,6 +15,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -29,8 +30,14 @@ public class ProductController {
     private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts() {
-        List<ProductDTO> dtos = productService.getAllProducts().stream()
+    public ResponseEntity<List<ProductDTO>> getAllProducts(@RequestParam(value = "showAll", required = false) Boolean showAll) {
+        List<Product> products;
+        if (Boolean.TRUE.equals(showAll)) {
+            products = productService.getAllProducts();
+        } else {
+            products = productService.getAvailableProducts();
+        }
+        List<ProductDTO> dtos = products.stream()
             .map(p -> new ProductDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice(), p.getStock(), p.getScale(), p.getGrade(), p.getSeries(), p.getImageUrl(), p.getIsAvailable(), p.getStore().getId()))
             .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
@@ -129,5 +136,35 @@ public class ProductController {
             .map(p -> new ProductDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice(), p.getStock(), p.getScale(), p.getGrade(), p.getSeries(), p.getImageUrl(), p.getIsAvailable(), p.getStore().getId()))
             .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
+    }
+
+    @PatchMapping("/{id}")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<ProductDTO> patchProduct(@PathVariable Long id, @RequestBody Map<String, Object> updates) {
+        Product product = productService.getProductById(id);
+        if (updates.containsKey("name")) product.setName((String) updates.get("name"));
+        if (updates.containsKey("description")) product.setDescription((String) updates.get("description"));
+        if (updates.containsKey("price")) product.setPrice(new java.math.BigDecimal(updates.get("price").toString()));
+        if (updates.containsKey("stock")) product.setStock((Integer) updates.get("stock"));
+        if (updates.containsKey("scale")) product.setScale((String) updates.get("scale"));
+        if (updates.containsKey("grade")) product.setGrade((String) updates.get("grade"));
+        if (updates.containsKey("series")) product.setSeries((String) updates.get("series"));
+        if (updates.containsKey("imageUrl")) product.setImageUrl((String) updates.get("imageUrl"));
+        if (updates.containsKey("isAvailable")) product.setIsAvailable((Boolean) updates.get("isAvailable"));
+        Product updated = productService.updateProduct(id, product);
+        ProductDTO dto = new ProductDTO(
+            updated.getId(),
+            updated.getName(),
+            updated.getDescription(),
+            updated.getPrice(),
+            updated.getStock(),
+            updated.getScale(),
+            updated.getGrade(),
+            updated.getSeries(),
+            updated.getImageUrl(),
+            updated.getIsAvailable(),
+            updated.getStore().getId()
+        );
+        return ResponseEntity.ok(dto);
     }
 } 

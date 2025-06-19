@@ -82,6 +82,9 @@ public class CartController {
             cartItemRepository.save(item);
         } else {
             Product product = productRepository.findById(productId).orElseThrow();
+            if (!product.getIsAvailable()) {
+                throw new RuntimeException("This product is no longer available.");
+            }
             CartItem item = new CartItem();
             item.setCart(cart);
             item.setProduct(product);

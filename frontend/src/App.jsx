@@ -17,6 +17,8 @@ import Orders from './components/Orders'
 import { useDispatch } from 'react-redux'
 import axios from 'axios'
 import AddressManager from './components/checkout/AddressManager'
+import SellerStore from './components/SellerStore'
+import SellerProducts from './components/SellerProducts'
 
 function App() {
   const dispatch = useDispatch()
@@ -44,6 +46,11 @@ function App() {
           <Route path='/profile/addresses' element={<AddressManager />} />
           <Route path='/contact' element={ <Contact />}/>
           <Route path='/cart' element={ <Cart />}/>
+
+          {/* 卖家相关路由 */}
+          <Route path='/seller/store' element={<SellerStore />} />
+          <Route path='/seller/products' element={<SellerProducts />} />
+          {/* <Route path='/seller/orders' element={<SellerOrders />} /> */}
         
           <Route path='/' element={<PrivateRoute />}>
             <Route path='/checkout' element={ <Checkout />}/>
