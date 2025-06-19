@@ -5,6 +5,7 @@ import com.example.gdecomm.payload.dto.*;
 import com.example.gdecomm.payload.request.CreateOrderRequest;
 import com.example.gdecomm.service.OrderService;
 import com.example.gdecomm.repository.UserRepository;
+import com.example.gdecomm.repository.StoreRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,9 @@ public class OrderController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private StoreRepository storeRepository;
 
     @PostMapping
     @PreAuthorize("hasRole('BUYER')")
@@ -96,6 +100,21 @@ public class OrderController {
             @RequestParam OrderStatus status) {
         Order order = orderService.updateOrderStatus(id, status);
         return ResponseEntity.ok(convertToDTO(order));
+    }
+
+    @GetMapping("/seller")
+    @PreAuthorize("hasRole('SELLER')")
+    public ResponseEntity<List<OrderDTO>> getSellerOrders() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User seller = userRepository.findByUsername(auth.getName()).orElseThrow();
+        Store store = storeRepository.findBySeller(seller).orElseThrow();
+        List<Order> allOrders = orderService.getAllOrders();
+        List<Order> sellerOrders = allOrders.stream()
+            .filter(order -> order.getOrderItems().stream()
+                .anyMatch(item -> item.getProduct().getStore().getId().equals(store.getId())))
+            .collect(java.util.stream.Collectors.toList());
+        List<OrderDTO> dtos = sellerOrders.stream().map(this::convertToDTO).collect(java.util.stream.Collectors.toList());
+        return ResponseEntity.ok(dtos);
     }
 
     private OrderDTO convertToDTO(Order order) {

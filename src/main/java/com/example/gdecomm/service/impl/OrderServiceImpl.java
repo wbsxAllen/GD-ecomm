@@ -122,6 +122,11 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
     }
 
+    @Override
+    public List<Order> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
     private String generateOrderNumber() {
         return UUID.randomUUID().toString().replace("-", "").substring(0, 12);
     }
