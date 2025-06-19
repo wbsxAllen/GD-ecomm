@@ -4,16 +4,38 @@ import axios from 'axios';
 export const fetchProducts = (queryString = "") => async (dispatch) => {
     try {
         dispatch({ type: "IS_FETCHING" });
-        const url = queryString ? `/products?${queryString}` : "/products";
+        let url = "/products";
+        
+        // If there is a search keyword, use the search API
+        const params = new URLSearchParams(queryString);
+        const keyword = params.get("keyword");
+        if (keyword) {
+            url = `/products/search?name=${encodeURIComponent(keyword)}`;
+            // Remove keyword parameter since it's already used in search API
+            params.delete("keyword");
+            // Add other parameters to search URL
+            const remainingParams = params.toString();
+            if (remainingParams) {
+                url += `&${remainingParams}`;
+            }
+        } else if (queryString) {
+            url += `?${queryString}`;
+        }
+
         const { data } = await api.get(url);
+        
+        // Process returned data
+        const payload = Array.isArray(data) ? data : (data.content || []);
+        
         dispatch({
             type: "FETCH_PRODUCTS",
-            payload: data.content || data,
-            pageNumber: data.pageNumber,
-            pageSize: data.pageSize,
-            totalElements: data.totalElements,
-            totalPages: data.totalPages,
-            lastPage: data.lastPage,
+            payload: payload,
+            // If no pagination info, provide default values
+            pageNumber: data.pageNumber || 0,
+            pageSize: data.pageSize || payload.length,
+            totalElements: data.totalElements || payload.length,
+            totalPages: data.totalPages || 1,
+            lastPage: data.lastPage || true,
         });
         dispatch({ type: "IS_SUCCESS" });
     } catch (error) {
@@ -155,22 +177,15 @@ export const registerNewUser
 
 export const logOutUser = (navigate) => async (dispatch) => {
     try {
-        const token = localStorage.getItem("token");
-        if (token) {
-            await api.post(
-                "/auth/logout",
-                {},
-                { headers: { Authorization: `Bearer ${token}` } }
-            );
-        }
-    } catch (e) {
-        console.log("Logout API error:", e);
-    } finally {
-        dispatch({ type: "LOG_OUT" });
-    localStorage.removeItem("auth");
         localStorage.removeItem("token");
-        localStorage.removeItem("userId");
+        localStorage.removeItem("CHECKOUT_ADDRESS");
+        localStorage.removeItem("cartItems");
+        localStorage.removeItem("client-secret");
+        dispatch({ type: "LOG_OUT" });
+        dispatch({ type: "CLEAR_CART" });
         navigate("/");
+    } catch (error) {
+        console.log(error);
     }
 };
 
@@ -335,25 +350,38 @@ export const createStripePaymentSecret
 
 
 export const stripePaymentConfirmation 
-    = (sendData, setErrorMesssage, setLoadng, toast) => async (dispatch, getState) => {
+    = (sendData, setErrorMessage, setLoading, toast, onSuccess) => async (dispatch, getState) => {
         try {
             const token = localStorage.getItem('token');
             await api.post("/payments/confirm", {
-                paymentIntentId: sendData.pgPaymentId,
-                status: sendData.pgStatus,
-                message: sendData.pgResponseMessage
+                paymentIntentId: sendData.paymentIntentId,
+                status: sendData.status,
+                message: sendData.message
             }, {
                 headers: { Authorization: `Bearer ${token}` }
             });
+            
+            // Clear cart and local storage
             await api.post('/cart/clear', {}, { headers: { Authorization: `Bearer ${token}` } });
             localStorage.removeItem("CHECKOUT_ADDRESS");
             localStorage.removeItem("cartItems");
             localStorage.removeItem("client-secret");
+            
+            // Update Redux state
             dispatch({ type: "REMOVE_CLIENT_SECRET_ADDRESS"});
             dispatch({ type: "CLEAR_CART"});
-            toast.success("Order Accepted");
+            
+            toast.success("Payment successful! Redirecting to orders...");
+            
+            // Call success callback if provided
+            if (onSuccess) {
+                onSuccess();
+            }
         } catch (error) {
-            setErrorMesssage("Payment Failed. Please try again.");
+            console.error('Payment confirmation error:', error);
+            setErrorMessage(error?.response?.data?.message || "Payment confirmation failed. Please contact support.");
+        } finally {
+            setLoading(false);
         }
 };
 

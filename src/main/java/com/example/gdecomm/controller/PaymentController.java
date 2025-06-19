@@ -87,8 +87,8 @@ public class PaymentController {
     @PostMapping("/webhook")
     public ResponseEntity<?> handleWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
         try {
-            // 处理 Stripe webhook 事件
-            // 这里需要实现 webhook 处理逻辑
+            // Handle Stripe webhook events
+            // Implement webhook handling logic here
             return ResponseEntity.ok().build();
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

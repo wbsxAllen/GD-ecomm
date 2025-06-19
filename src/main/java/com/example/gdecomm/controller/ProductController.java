@@ -8,6 +8,10 @@ import com.example.gdecomm.payload.dto.ProductDTO;
 import com.example.gdecomm.repository.StoreRepository;
 import com.example.gdecomm.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -30,17 +34,36 @@ public class ProductController {
     private UserRepository userRepository;
 
     @GetMapping
-    public ResponseEntity<List<ProductDTO>> getAllProducts(@RequestParam(value = "showAll", required = false) Boolean showAll) {
-        List<Product> products;
+    public ResponseEntity<Map<String, Object>> getAllProducts(
+            @RequestParam(value = "showAll", required = false) Boolean showAll,
+            @RequestParam(value = "sortby", required = false, defaultValue = "asc") String sortOrder,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "8") int pageSize) {
+        
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), "price");
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        
+        Page<Product> productPage;
         if (Boolean.TRUE.equals(showAll)) {
-            products = productService.getAllProducts();
+            productPage = productService.getAllProducts(pageable);
         } else {
-            products = productService.getAvailableProducts();
+            productPage = productService.getAvailableProducts(pageable);
         }
-        List<ProductDTO> dtos = products.stream()
+        
+        List<ProductDTO> dtos = productPage.getContent().stream()
             .map(p -> new ProductDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice(), p.getStock(), p.getScale(), p.getGrade(), p.getSeries(), p.getImageUrl(), p.getIsAvailable(), p.getStore().getId()))
             .collect(Collectors.toList());
-        return ResponseEntity.ok(dtos);
+
+        Map<String, Object> response = Map.of(
+            "content", dtos,
+            "pageNumber", productPage.getNumber(),
+            "pageSize", productPage.getSize(),
+            "totalElements", productPage.getTotalElements(),
+            "totalPages", productPage.getTotalPages(),
+            "lastPage", productPage.isLast()
+        );
+        
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/{id}")
@@ -136,6 +159,40 @@ public class ProductController {
             .map(p -> new ProductDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice(), p.getStock(), p.getScale(), p.getGrade(), p.getSeries(), p.getImageUrl(), p.getIsAvailable(), p.getStore().getId()))
             .collect(Collectors.toList());
         return ResponseEntity.ok(dtos);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<Map<String, Object>> searchProducts(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "false") boolean showAll,
+            @RequestParam(value = "sortby", required = false, defaultValue = "asc") String sortOrder,
+            @RequestParam(defaultValue = "0") int pageNumber,
+            @RequestParam(defaultValue = "8") int pageSize) {
+        
+        Sort sort = Sort.by(Sort.Direction.fromString(sortOrder), "price");
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, sort);
+        
+        Page<Product> productPage;
+        if (showAll) {
+            productPage = productService.searchProductsByName(name, pageable);
+        } else {
+            productPage = productService.searchAvailableProductsByName(name, pageable);
+        }
+        
+        List<ProductDTO> dtos = productPage.getContent().stream()
+            .map(p -> new ProductDTO(p.getId(), p.getName(), p.getDescription(), p.getPrice(), p.getStock(), p.getScale(), p.getGrade(), p.getSeries(), p.getImageUrl(), p.getIsAvailable(), p.getStore().getId()))
+            .collect(Collectors.toList());
+
+        Map<String, Object> response = Map.of(
+            "content", dtos,
+            "pageNumber", productPage.getNumber(),
+            "pageSize", productPage.getSize(),
+            "totalElements", productPage.getTotalElements(),
+            "totalPages", productPage.getTotalPages(),
+            "lastPage", productPage.isLast()
+        );
+        
+        return ResponseEntity.ok(response);
     }
 
     @PatchMapping("/{id}")

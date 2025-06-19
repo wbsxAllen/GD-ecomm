@@ -8,6 +8,7 @@ import com.example.gdecomm.payload.request.CreateReviewRequest;
 import com.example.gdecomm.repository.ReviewRepository;
 import com.example.gdecomm.repository.UserRepository;
 import com.example.gdecomm.repository.ProductRepository;
+import com.example.gdecomm.service.ReviewService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -29,17 +30,25 @@ public class ReviewController {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private ReviewService reviewService;
+
     @PostMapping
     public ResponseEntity<?> createReview(@RequestBody CreateReviewRequest request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
+        Long productId = request.getProductId();
         
+        // Check if the user has purchased and paid for the product
+        if (!reviewService.canUserReviewProduct(user, productId)) {
+            return ResponseEntity.status(403).body("You can only review products you have purchased and paid for.");
+        }
         // Check if user has already reviewed this product
-        if (reviewRepository.existsByUserIdAndProductId(user.getId(), request.getProductId())) {
+        if (reviewRepository.existsByUserIdAndProductId(user.getId(), productId)) {
             return ResponseEntity.badRequest().body("You have already reviewed this product");
         }
 
-        Product product = productRepository.findById(request.getProductId())
+        Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found"));
 
         Review review = new Review();

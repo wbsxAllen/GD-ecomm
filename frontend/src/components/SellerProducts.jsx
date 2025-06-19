@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import Paginations from "./shared/Paginations";
+import { useSearchParams } from "react-router-dom";
 
 const SellerProducts = () => {
   const [store, setStore] = useState(null);
@@ -14,6 +16,14 @@ const SellerProducts = () => {
   const [editProduct, setEditProduct] = useState(null);
   const [editForm, setEditForm] = useState({});
   const [showEdit, setShowEdit] = useState(false);
+  const [pagination, setPagination] = useState({
+    pageNumber: 0,
+    pageSize: 9,
+    totalElements: 0,
+    totalPages: 1,
+    lastPage: true
+  });
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const fetchStoreAndProducts = async () => {
     setLoading(true);
@@ -25,11 +35,20 @@ const SellerProducts = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setStore(storeData);
+
+      const currentPage = searchParams.get("page") ? Number(searchParams.get("page")) - 1 : 0;
       const { data: productsData } = await axios.get(
-        `${import.meta.env.VITE_API_BASE_URL}/products?storeId=${storeData.id}&showAll=true`,
+        `${import.meta.env.VITE_API_BASE_URL}/products?storeId=${storeData.id}&showAll=true&pageNumber=${currentPage}&pageSize=9`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setProducts(productsData);
+      setProducts(productsData.content || []);
+      setPagination({
+        pageNumber: productsData.pageNumber,
+        pageSize: productsData.pageSize,
+        totalElements: productsData.totalElements,
+        totalPages: productsData.totalPages,
+        lastPage: productsData.lastPage
+      });
     } catch (err) {
       setError('Failed to load products.');
     } finally {
@@ -39,7 +58,7 @@ const SellerProducts = () => {
 
   useEffect(() => {
     fetchStoreAndProducts();
-  }, []);
+  }, [searchParams]);
 
   const handleAdd = () => {
     setForm({ name: '', description: '', price: '', stock: '', scale: '', grade: '', series: '', imageUrl: '', isAvailable: true });
@@ -123,7 +142,7 @@ const SellerProducts = () => {
   if (error) return <div className="text-center text-red-500 py-10">{error}</div>;
 
   return (
-    <div className="max-w-4xl mx-auto py-10 px-4 bg-white rounded shadow">
+    <div className="max-w-6xl mx-auto py-10 px-4 bg-white rounded shadow">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold">My Products</h2>
         <button className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-2 hover:bg-blue-700" onClick={handleAdd}>
@@ -197,26 +216,34 @@ const SellerProducts = () => {
         </tbody>
       </table>
       {showEdit && (
-        <div className="mb-6 p-4 border rounded bg-gray-50">
-          <h3 className="font-bold mb-2">Edit Product</h3>
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <input className="border rounded px-2 py-1" name="name" placeholder="Name" value={editForm.name} onChange={handleEditChange} />
-            <input className="border rounded px-2 py-1" name="price" placeholder="Price" type="number" value={editForm.price} onChange={handleEditChange} />
-            <input className="border rounded px-2 py-1" name="stock" placeholder="Stock" type="number" value={editForm.stock} onChange={handleEditChange} />
-            <input className="border rounded px-2 py-1" name="scale" placeholder="Scale (e.g. 1_144)" value={editForm.scale} onChange={handleEditChange} />
-            <input className="border rounded px-2 py-1" name="grade" placeholder="Grade (e.g. HG)" value={editForm.grade} onChange={handleEditChange} />
-            <input className="border rounded px-2 py-1" name="series" placeholder="Series (e.g. UC)" value={editForm.series} onChange={handleEditChange} />
-            <input className="border rounded px-2 py-1 col-span-2" name="imageUrl" placeholder="Image URL" value={editForm.imageUrl} onChange={handleEditChange} />
-          </div>
-          <textarea className="border rounded px-2 py-1 w-full mb-2" name="description" placeholder="Description" value={editForm.description} onChange={handleEditChange} rows={2} />
-          <div className="flex gap-4 mb-2 items-center">
-            <button className="bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700" onClick={handleEditSave}>Save</button>
-            <button className="bg-gray-300 text-gray-800 px-4 py-1 rounded hover:bg-gray-400" onClick={() => setShowEdit(false)}>Cancel</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full">
+            <h3 className="text-xl font-bold mb-4">Edit Product</h3>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <input className="border rounded px-2 py-1" name="name" placeholder="Name" value={editForm.name} onChange={handleEditChange} />
+              <input className="border rounded px-2 py-1" name="price" placeholder="Price" type="number" value={editForm.price} onChange={handleEditChange} />
+              <input className="border rounded px-2 py-1" name="stock" placeholder="Stock" type="number" value={editForm.stock} onChange={handleEditChange} />
+              <input className="border rounded px-2 py-1" name="scale" placeholder="Scale" value={editForm.scale} onChange={handleEditChange} />
+              <input className="border rounded px-2 py-1" name="grade" placeholder="Grade" value={editForm.grade} onChange={handleEditChange} />
+              <input className="border rounded px-2 py-1" name="series" placeholder="Series" value={editForm.series} onChange={handleEditChange} />
+              <input className="border rounded px-2 py-1 col-span-2" name="imageUrl" placeholder="Image URL" value={editForm.imageUrl} onChange={handleEditChange} />
+            </div>
+            <textarea className="border rounded px-2 py-1 w-full mb-4" name="description" placeholder="Description" value={editForm.description} onChange={handleEditChange} rows={3} />
+            <div className="flex justify-end gap-4">
+              <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onClick={handleEditSave}>Save Changes</button>
+              <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400" onClick={() => { setShowEdit(false); setEditProduct(null); }}>Cancel</button>
+            </div>
           </div>
         </div>
       )}
+      <div className="flex justify-center mt-6">
+        <Paginations 
+          numberOfPage={pagination.totalPages}
+          totalProducts={pagination.totalElements}
+        />
+      </div>
     </div>
   );
-};
+}
 
 export default SellerProducts; 

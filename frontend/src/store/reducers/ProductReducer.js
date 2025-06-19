@@ -1,7 +1,13 @@
 const initialState = {
-    products: null,
+    products: [],
     categories: null,
-    pagination: {},
+    pagination: {
+        pageNumber: 0,
+        pageSize: 9,
+        totalElements: 0,
+        totalPages: 1,
+        lastPage: true
+    },
 };
 
 export const productReducer = (state = initialState, action) => {
@@ -11,21 +17,6 @@ export const productReducer = (state = initialState, action) => {
                 ...state,
                 products: action.payload,
                 pagination: {
-                    ...state.pagination,
-                    pageNumber: action.pageNumber,
-                    pageSize: action.pageSize,
-                    totalElements: action.totalElements,
-                    totalPages: action.totalPages,
-                    lastPage: action.lastPage,
-                },
-            };
-
-        case "FETCH_PRODUCTS":
-            return {
-                ...state,
-                products: action.payload,
-                pagination: {
-                    ...state.pagination,
                     pageNumber: action.pageNumber,
                     pageSize: action.pageSize,
                     totalElements: action.totalElements,
@@ -39,7 +30,6 @@ export const productReducer = (state = initialState, action) => {
                 ...state,
                 categories: action.payload,
                 pagination: {
-                    ...state.pagination,
                     pageNumber: action.pageNumber,
                     pageSize: action.pageSize,
                     totalElements: action.totalElements,
@@ -48,7 +38,6 @@ export const productReducer = (state = initialState, action) => {
                 },
             };
         
-    
         default:
             return state;
     }

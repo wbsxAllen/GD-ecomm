@@ -20,12 +20,15 @@ const Register = () => {
         formState: {errors},
     } = useForm({
         mode: "onTouched",
+        defaultValues: {
+            role: "BUYER"
+        }
     });
 
     const registerHandler = async (data) => {
-        console.log("Register Click");
+        console.log("Register Click", data);
         dispatch(registerNewUser(data, toast, reset, navigate, setLoader));
-     };
+    };
 
     return (
         <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">
@@ -73,6 +76,19 @@ const Register = () => {
                     register={register}
                     errors={errors}
                     />
+
+                <div className="flex flex-col gap-1">
+                    <label htmlFor="role" className="text-sm font-medium text-gray-700">
+                        Register as
+                    </label>
+                    <select
+                        {...register("role")}
+                        className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    >
+                        <option value="BUYER">Buyer</option>
+                        <option value="SELLER">Seller</option>
+                    </select>
+                </div>
             </div>
 
             <button

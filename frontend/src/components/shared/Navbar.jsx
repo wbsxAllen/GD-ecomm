@@ -1,21 +1,15 @@
 import { Badge } from "@mui/material";
 import { useState, useEffect } from "react";
 import { FaShoppingCart, FaSignInAlt, FaStore, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
-import { IoIosMenu } from "react-icons/io";
-import { RxCross2 } from "react-icons/rx";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import UserMenu from "../UserMenu";
-import SidebarDrawer from './SidebarDrawer';
 import { selectUserCheckoutAddress, getUserAddresses } from "../../store/actions";
 
 const Navbar = () => {
     const path = useLocation().pathname;
-    const [navbarOpen, setNavbarOpen] = useState(false);
     const { cart } = useSelector((state) => state.carts);
     const { user, selectedUserCheckoutAddress, address } = useSelector((state) => state.auth);
     const dispatch = useDispatch();
-    const [drawerOpen, setDrawerOpen] = useState(false);
     const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
@@ -39,21 +33,11 @@ const Navbar = () => {
 
     return (
         <div className="h-[70px] bg-custom-gradient text-white z-50 flex items-center sticky top-0">
-            <SidebarDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} user={user} />
             <div className="lg:px-14 sm:px-8 px-4 w-full flex justify-between items-center">
-                <div className="flex items-center">
                 <Link to="/" className="flex items-center text-2xl font-bold">
                     <FaStore className="mr-2 text-3xl" />
                     <span className="font-[Poppins]">E-Shop</span>
                 </Link>
-                    <button
-                        className="flex items-center px-3 py-2 bg-[#232f3e] text-white rounded ml-4"
-                        onClick={() => setDrawerOpen(true)}
-                    >
-                        <svg width="24" height="24" fill="currentColor" className="mr-2"><rect y="4" width="24" height="2"/><rect y="11" width="24" height="2"/><rect y="18" width="24" height="2"/></svg>
-                        All
-                    </button>
-                </div>
 
                 {/* Delivery Address Dropdown */}
                 <div className="hidden md:flex items-center mx-4 relative">
