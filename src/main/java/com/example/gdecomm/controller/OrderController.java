@@ -106,7 +106,8 @@ public class OrderController {
                         item.getProduct().getName(),
                         item.getQuantity(),
                         item.getPrice(),
-                        item.getSubtotal()
+                        item.getSubtotal(),
+                        item.getProduct().getImageUrl()
                 ))
                 .collect(Collectors.toList());
 

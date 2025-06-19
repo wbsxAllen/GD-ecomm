@@ -16,9 +16,9 @@ public class Address {
 
     private String receiverName;
     private String phone;
+    private String country;
     private String province;
     private String city;
-    private String district;
     private String detail;
     private String zipCode;
     private Boolean isDefault = false;

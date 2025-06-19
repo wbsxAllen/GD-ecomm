@@ -1,111 +1,103 @@
-import React from 'react';
+import React, { useState } from 'react'
 import { useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { registerNewUser } from '../../store/actions';
+import { FaUserPlus } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
 import InputField from '../shared/InputField';
+import { useDispatch } from 'react-redux';
+import { registerNewUser } from '../../store/actions';
+import toast from 'react-hot-toast';
+import Spinners from '../shared/Spinners';
 
 const Register = () => {
-    const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, error } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    const [loader, setLoader] = useState(false);
 
     const {
         register,
         handleSubmit,
-        formState: { errors },
-    } = useForm();
+        reset,
+        formState: {errors},
+    } = useForm({
+        mode: "onTouched",
+    });
 
-    const onSubmit = (data) => {
-        dispatch(registerNewUser(data, navigate));
-    };
+    const registerHandler = async (data) => {
+        console.log("Register Click");
+        dispatch(registerNewUser(data, toast, reset, navigate, setLoader));
+     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div>
-                    <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-                        Create a new account
-                    </h2>
-                </div>
-                <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-                    <div className="rounded-md shadow-sm -space-y-px">
-                        <InputField
-                            label="Username"
-                            required
-                            id="username"
-                            type="text"
-                            message="Please enter your username"
-                            placeholder="Enter your username"
-                            register={register}
-                            errors={errors}
-                            min={3}
-                        />
-                        <InputField
-                            label="Email"
-                            required
-                            id="email"
-                            type="email"
-                            message="Please enter your email"
-                            placeholder="Enter your email"
-                            register={register}
-                            errors={errors}
-                        />
-                        <InputField
-                            label="Phone"
-                            required
-                            id="phone"
-                            type="tel"
-                            message="Please enter your phone number"
-                            placeholder="Enter your phone number"
-                            register={register}
-                            errors={errors}
-                        />
-                        <InputField
-                            label="Password"
-                            required
-                            id="password"
-                            type="password"
-                            message="Please enter your password"
-                            placeholder="Enter your password"
-                            register={register}
-                            errors={errors}
-                            min={6}
-                        />
+        <div className="min-h-[calc(100vh-64px)] flex justify-center items-center">
+            <form
+                onSubmit={handleSubmit(registerHandler)}
+                className="sm:w-[450px] w-[360px] shadow-custom py-8 sm:px-8 px-4 rounded-md">
+                    <div className="flex flex-col items-center justify-center space-y-4">
+                        <FaUserPlus className="text-slate-800 text-5xl"/>
+                        <h1 className="text-slate-800 text-center font-montserrat lg:text-3xl text-2xl font-bold">
+                            Register Here
+                        </h1>
                     </div>
+            <hr className="mt-2 mb-5 text-black" />
+            <div className="flex flex-col gap-3">
+                <InputField
+                    label="UserName"
+                    required
+                    id="username"
+                    type="text"
+                    message="*UserName is required"
+                    placeholder="Enter your username"
+                    register={register}
+                    errors={errors}
+                    />
 
-                    {error && (
-                        <div className="text-red-500 text-sm text-center">
-                            {error}
-                        </div>
-                    )}
+                <InputField
+                    label="Email"
+                    required
+                    id="email"
+                    type="email"
+                    message="*Email is required"
+                    placeholder="Enter your email"
+                    register={register}
+                    errors={errors}
+                    />
 
-                    <div>
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        >
-                            {loading ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                            ) : (
-                                'Sign up'
-                            )}
-                        </button>
-                    </div>
-
-                    <div className="text-sm text-center">
-                        <Link
-                            to="/login"
-                            className="font-medium text-indigo-600 hover:text-indigo-500"
-                        >
-                            Already have an account? Sign in
-                        </Link>
-                    </div>
-                </form>
+                <InputField
+                    label="Password"
+                    required
+                    id="password"
+                    min={6}
+                    type="password"
+                    message="*Password is required"
+                    placeholder="Enter your password"
+                    register={register}
+                    errors={errors}
+                    />
             </div>
+
+            <button
+                disabled={loader}
+                className="bg-button-gradient flex gap-2 items-center justify-center font-semibold text-white w-full py-2 hover:text-slate-400 transition-colors duration-100 rounded-sm my-3"
+                type="submit">
+                {loader ? (
+                    <>
+                    <Spinners /> Loading...
+                    </>
+                ) : (
+                    <>Register</>
+                )}
+            </button>
+
+            <p className="text-center text-sm text-slate-700 mt-6">
+              Already have an account?
+              <Link
+                className="font-semibold underline hover:text-black"
+                to="/login">
+              <span> Login</span></Link>  
+            </p>
+            </form>
         </div>
     );
-};
+}
 
-export default Register; 
+export default Register

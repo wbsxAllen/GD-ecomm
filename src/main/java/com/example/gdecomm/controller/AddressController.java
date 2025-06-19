@@ -31,7 +31,7 @@ public class AddressController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userRepository.findByUsername(auth.getName()).orElseThrow();
         return addressRepository.findByUser(user).stream()
-                .map(a -> new AddressDTO(a.getId(), user.getId(), a.getReceiverName(), a.getPhone(), a.getProvince(), a.getCity(), a.getDistrict(), a.getDetail(), a.getZipCode(), a.getIsDefault()))
+                .map(a -> new AddressDTO(a.getId(), user.getId(), a.getReceiverName(), a.getPhone(), a.getCountry(), a.getProvince(), a.getCity(), a.getDetail(), a.getZipCode(), a.getIsDefault()))
                 .collect(Collectors.toList());
     }
 
@@ -43,7 +43,7 @@ public class AddressController {
     public List<AddressDTO> list(@RequestParam Long userId) {
         User user = userRepository.findById(userId).orElseThrow();
         return addressRepository.findByUser(user).stream()
-                .map(a -> new AddressDTO(a.getId(), userId, a.getReceiverName(), a.getPhone(), a.getProvince(), a.getCity(), a.getDistrict(), a.getDetail(), a.getZipCode(), a.getIsDefault()))
+                .map(a -> new AddressDTO(a.getId(), userId, a.getReceiverName(), a.getPhone(), a.getCountry(), a.getProvince(), a.getCity(), a.getDetail(), a.getZipCode(), a.getIsDefault()))
                 .collect(Collectors.toList());
     }
 
@@ -59,14 +59,14 @@ public class AddressController {
         a.setUser(user);
         a.setReceiverName(dto.getReceiverName());
         a.setPhone(dto.getPhone());
+        a.setCountry(dto.getCountry());
         a.setProvince(dto.getProvince());
         a.setCity(dto.getCity());
-        a.setDistrict(dto.getDistrict());
         a.setDetail(dto.getDetail());
         a.setZipCode(dto.getZipCode());
         a.setIsDefault(dto.getIsDefault() != null ? dto.getIsDefault() : false);
         Address saved = addressRepository.save(a);
-        return new AddressDTO(saved.getId(), user.getId(), saved.getReceiverName(), saved.getPhone(), saved.getProvince(), saved.getCity(), saved.getDistrict(), saved.getDetail(), saved.getZipCode(), saved.getIsDefault());
+        return new AddressDTO(saved.getId(), user.getId(), saved.getReceiverName(), saved.getPhone(), saved.getCountry(), saved.getProvince(), saved.getCity(), saved.getDetail(), saved.getZipCode(), saved.getIsDefault());
     }
 
     /**
@@ -83,14 +83,14 @@ public class AddressController {
         }
         a.setReceiverName(dto.getReceiverName());
         a.setPhone(dto.getPhone());
+        a.setCountry(dto.getCountry());
         a.setProvince(dto.getProvince());
         a.setCity(dto.getCity());
-        a.setDistrict(dto.getDistrict());
         a.setDetail(dto.getDetail());
         a.setZipCode(dto.getZipCode());
         a.setIsDefault(dto.getIsDefault() != null ? dto.getIsDefault() : false);
         Address saved = addressRepository.save(a);
-        return new AddressDTO(saved.getId(), saved.getUser().getId(), saved.getReceiverName(), saved.getPhone(), saved.getProvince(), saved.getCity(), saved.getDistrict(), saved.getDetail(), saved.getZipCode(), saved.getIsDefault());
+        return new AddressDTO(saved.getId(), saved.getUser().getId(), saved.getReceiverName(), saved.getPhone(), saved.getCountry(), saved.getProvince(), saved.getCity(), saved.getDetail(), saved.getZipCode(), saved.getIsDefault());
     }
 
     /**

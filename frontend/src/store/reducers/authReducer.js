@@ -1,82 +1,31 @@
-import { createSlice } from '@reduxjs/toolkit';
-
 const initialState = {
-  user: null,
-  address: [],
-  clientSecret: null,
-  selectedUserCheckoutAddress: null,
+    user: null,
+    address: [],
+    clientSecret: null,
+    selectedUserCheckoutAddress: JSON.parse(localStorage.getItem("CHECKOUT_ADDRESS")) || null,
+}
+
+export const authReducer = (state = initialState, action) => {
+    switch (action.type) {
+        case "LOGIN_USER":
+            return { ...state, user: action.payload };
+        case "USER_ADDRESS":
+            return { ...state, address: action.payload };
+        case "SELECT_CHECKOUT_ADDRESS":
+            return { ...state, selectedUserCheckoutAddress: action.payload };
+        case "REMOVE_CHECKOUT_ADDRESS":
+            return { ...state, selectedUserCheckoutAddress: null };
+        case "CLIENT_SECRET":
+            return { ...state, clientSecret: action.payload };
+        case "REMOVE_CLIENT_SECRET_ADDRESS":
+            return { ...state, clientSecret: null, selectedUserCheckoutAddress: null };
+        case "LOG_OUT":
+            return { 
+                user: null,
+                address: null,
+             };
+             
+        default:
+            return state;
+    }
 };
-
-const authSlice = createSlice({
-  name: 'auth',
-  initialState,
-  reducers: {
-    loginStart: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
-    loginSuccess: (state, action) => {
-      state.loading = false;
-      state.isAuthenticated = true;
-      state.user = action.payload;
-      state.error = null;
-    },
-    loginFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    registerStart: (state) => {
-      state.loading = true;
-      state.error = null;
-    },
-    registerSuccess: (state, action) => {
-      state.loading = false;
-      state.isAuthenticated = true;
-      state.user = action.payload;
-      state.error = null;
-    },
-    registerFailure: (state, action) => {
-      state.loading = false;
-      state.error = action.payload;
-    },
-    logout: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-      state.loading = false;
-      state.error = null;
-    },
-    userAddress: (state, action) => {
-      state.address = action.payload;
-    },
-    selectCheckoutAddress: (state, action) => {
-      state.selectedUserCheckoutAddress = action.payload;
-    },
-    removeCheckoutAddress: (state) => {
-      state.selectedUserCheckoutAddress = null;
-    },
-    clientSecret: (state, action) => {
-      state.clientSecret = action.payload;
-    },
-    removeClientSecretAddress: (state) => {
-      state.clientSecret = null;
-      state.selectedUserCheckoutAddress = null;
-    },
-  },
-});
-
-export const {
-  loginStart,
-  loginSuccess,
-  loginFailure,
-  registerStart,
-  registerSuccess,
-  registerFailure,
-  logout,
-  userAddress,
-  selectCheckoutAddress,
-  removeCheckoutAddress,
-  clientSecret,
-  removeClientSecretAddress,
-} = authSlice.actions;
-
-export default authSlice.reducer; 

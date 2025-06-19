@@ -36,6 +36,14 @@ public class CartController {
         return userRepository.findByUsername(auth.getName()).orElseThrow();
     }
 
+    private User getCurrentUserSafe() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null || auth.getName() == null) {
+            return null;
+        }
+        return userRepository.findByUsername(auth.getName()).orElse(null);
+    }
+
     @GetMapping
     public CartDTO getCart() {
         User user = getCurrentUser();
@@ -50,7 +58,8 @@ public class CartController {
                         item.getProduct().getId(),
                         item.getProduct().getName(),
                         item.getQuantity(),
-                        item.getProduct().getPrice().doubleValue()
+                        item.getProduct().getPrice().doubleValue(),
+                        item.getProduct().getImageUrl()
                 )).collect(Collectors.toList());
         return new CartDTO(cart.getId(), user.getId(), items);
     }
@@ -73,6 +82,9 @@ public class CartController {
             cartItemRepository.save(item);
         } else {
             Product product = productRepository.findById(productId).orElseThrow();
+            if (!product.getIsAvailable()) {
+                throw new RuntimeException("This product is no longer available.");
+            }
             CartItem item = new CartItem();
             item.setCart(cart);
             item.setProduct(product);
@@ -121,10 +133,15 @@ public class CartController {
 
     @PostMapping("/clear")
     public CartDTO clearCart() {
-        User user = getCurrentUser();
+        User user = getCurrentUserSafe();
+        if (user == null) {
+            throw new RuntimeException("User not found or not authenticated");
+        }
         Cart cart = cartRepository.findByUserId(user.getId());
-        if (cart == null) return null;
-        cart.getCartItems().forEach(cartItemRepository::delete);
+        if (cart == null) {
+            return new CartDTO(null, user.getId(), new java.util.ArrayList<>());
+        }
+        cartItemRepository.deleteAll(cart.getCartItems());
         cart.getCartItems().clear();
         cartRepository.save(cart);
         return getCart();

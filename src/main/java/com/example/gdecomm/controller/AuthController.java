@@ -12,6 +12,7 @@ import com.example.gdecomm.repository.RoleRepository;
 import com.example.gdecomm.repository.UserRepository;
 import com.example.gdecomm.repository.StoreRepository;
 import com.example.gdecomm.util.JwtUtil;
+import com.example.gdecomm.util.RedisService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,6 +34,8 @@ public class AuthController {
     private JwtUtil jwtUtil;
     @Autowired
     private StoreRepository storeRepository;
+    @Autowired
+    private RedisService redisService;
 
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@RequestBody RegisterRequest signUpRequest) {
@@ -101,5 +104,15 @@ public class AuthController {
         dto.setBirthday(user.getBirthday());
         dto.setSignature(user.getSignature());
         return ResponseEntity.ok(dto);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            long exp = jwtUtil.getExpirationFromToken(token).getTime() - System.currentTimeMillis();
+            redisService.addToBlacklist(token, exp);
+        }
+        return ResponseEntity.ok("Logged out successfully");
     }
 } 

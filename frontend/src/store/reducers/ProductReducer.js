@@ -1,37 +1,55 @@
-import { createSlice } from '@reduxjs/toolkit';
-
 const initialState = {
-  products: [],
-  loading: false,
-  error: null,
-  filters: {
-    category: '',
-    priceRange: [0, 1000],
-    sortBy: 'newest',
-  },
+    products: null,
+    categories: null,
+    pagination: {},
 };
 
-const productSlice = createSlice({
-  name: 'products',
-  initialState,
-  reducers: {
-    setProducts: (state, action) => {
-      state.products = action.payload;
-      state.loading = false;
-      state.error = null;
-    },
-    setLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-    setError: (state, action) => {
-      state.error = action.payload;
-      state.loading = false;
-    },
-    setFilters: (state, action) => {
-      state.filters = { ...state.filters, ...action.payload };
-    },
-  },
-});
+export const productReducer = (state = initialState, action) => {
+    switch (action.type) {
+        case "FETCH_PRODUCTS":
+            return {
+                ...state,
+                products: action.payload,
+                pagination: {
+                    ...state.pagination,
+                    pageNumber: action.pageNumber,
+                    pageSize: action.pageSize,
+                    totalElements: action.totalElements,
+                    totalPages: action.totalPages,
+                    lastPage: action.lastPage,
+                },
+            };
 
-export const { setProducts, setLoading, setError, setFilters } = productSlice.actions;
-export default productSlice.reducer; 
+        case "FETCH_PRODUCTS":
+            return {
+                ...state,
+                products: action.payload,
+                pagination: {
+                    ...state.pagination,
+                    pageNumber: action.pageNumber,
+                    pageSize: action.pageSize,
+                    totalElements: action.totalElements,
+                    totalPages: action.totalPages,
+                    lastPage: action.lastPage,
+                },
+            };
+    
+        case "FETCH_CATEGORIES":
+            return {
+                ...state,
+                categories: action.payload,
+                pagination: {
+                    ...state.pagination,
+                    pageNumber: action.pageNumber,
+                    pageSize: action.pageSize,
+                    totalElements: action.totalElements,
+                    totalPages: action.totalPages,
+                    lastPage: action.lastPage,
+                },
+            };
+        
+    
+        default:
+            return state;
+    }
+};

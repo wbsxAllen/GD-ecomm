@@ -1,10 +1,16 @@
-const ErrorPage = () => {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-[300px]">
-      <h2 className="text-2xl font-bold mb-4 text-red-600">404 - Page Not Found</h2>
-      <p className="text-gray-600">Sorry, the page you are looking for does not exist.</p>
-    </div>
-  );
-};
+import React from 'react'
+import { FaExclamationTriangle } from 'react-icons/fa'
 
-export default ErrorPage; 
+const ErrorPage = ({ message}) => {
+  return (
+    <div className='flex flex-col items-center justify-center px-6 py-14'>
+        <FaExclamationTriangle className='text-red-500 text-6xl mb-4' />
+        <p className='text-gray-600 mb-6 text-center'>
+            {message ? message : "An unexpected error has occured"}
+        </p>
+    </div>
+    
+  )
+}
+
+export default ErrorPage

@@ -1,12 +1,12 @@
 package com.example.gdecomm.model;
 
 import jakarta.persistence.*;
-import lombok.Data;
 import java.math.BigDecimal;
+import lombok.Data;
 
+@Data
 @Entity
 @Table(name = "products")
-@Data
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
