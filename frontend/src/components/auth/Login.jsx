@@ -8,7 +8,7 @@ import { authenticateSignInUser } from "../../store/actions";
 import toast from "react-hot-toast";
 import Spinners from "../shared/Spinners";
 
-const LogIn = () => {
+const Login = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const [loader, setLoader] = useState(false);
@@ -89,4 +89,4 @@ const LogIn = () => {
     );
 }
 
-export default LogIn;
+export default Login;

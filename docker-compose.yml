@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  # MySQL Database
+  db:
+    image: mysql:8.0
+    container_name: gdecomm-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: gdecomm
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: gdecomm
+      MYSQL_PASSWORD: password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./local_database_backup.sql:/docker-entrypoint-initdb.d/01-local-data.sql
+    networks:
+      - gdecomm-network
+
+  # Redis Cache
+  redis:
+    image: redis:6-alpine
+    container_name: gdecomm-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - gdecomm-network
+
+  # Spring Boot Backend
+  backend:
+    build: .
+    container_name: gdecomm-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/gdecomm?createDatabaseIfNotExist=true&allowPublicKeyRetrieval=true&useSSL=false
+      - SPRING_DATASOURCE_USERNAME=gdecomm
+      - SPRING_DATASOURCE_PASSWORD=password
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - JWT_SECRET=YOUR_SUPER_SECRET_JWT_KEY_CHANGE_ME
+      - STRIPE_SECRET_KEY=sk_test_YOUR_STRIPE_SECRET_KEY_CHANGE_ME
+    depends_on:
+      - db
+      - redis
+    networks:
+      - gdecomm-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # React Frontend
+  frontend:
+    build: ./frontend
+    container_name: gdecomm-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8080/api
+      - VITE_FRONTEND_URL=http://localhost:3000
+      - VITE_STRIPE_PUBLISHABLE_KEY=pk_test_YOUR_STRIPE_PUBLISHABLE_KEY_CHANGE_ME
+    depends_on:
+      - backend
+      - db
+    networks:
+      - gdecomm-network
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  gdecomm-network:
+    driver: bridge 
