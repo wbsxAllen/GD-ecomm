@@ -7,7 +7,7 @@ import Navbar from './components/shared/Navbar'
 import Contact from './components/Contact'
 import { Toaster } from 'react-hot-toast'
 import Cart from './components/cart/Cart'
-import LogIn from './components/auth/LogIn'
+import Login from './components/auth/Login'
 import PrivateRoute from './components/PrivateRoute'
 import Register from './components/auth/Register'
 import Checkout from './components/checkout/Checkout'
@@ -60,7 +60,7 @@ function App() {
           </Route>
 
           <Route path='/' element={<PrivateRoute publicPage />}>
-            <Route path='/login' element={ <LogIn />}/>
+            <Route path='/login' element={ <Login />}/>
             <Route path='/register' element={ <Register />}/>
           </Route>
         </Routes>
