@@ -45,8 +45,8 @@ services:
       - SPRING_DATASOURCE_PASSWORD=password
       - SPRING_REDIS_HOST=redis
       - SPRING_REDIS_PORT=6379
-      - JWT_SECRET=YOUR_SUPER_SECRET_JWT_KEY_CHANGE_ME
-      - STRIPE_SECRET_KEY=sk_test_YOUR_STRIPE_SECRET_KEY_CHANGE_ME
+      - JWT_SECRET=57a9c57f4b557a62480d94c72aedc9fa64b7f600b0c0e94fa6fc3f2d3d4f0f27c53ae2d058771064ee07e528aaddf23adc93deeaf9d389db7a71019c10cf2cc9
+      - STRIPE_SECRET_KEY=sk_test_placeholder
     depends_on:
       - db
       - redis
