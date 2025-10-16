@@ -1,5 +1,5 @@
 import { Badge } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { FaShoppingCart, FaSignInAlt, FaStore, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
 import { useSelector, useDispatch } from "react-redux";
 import { Link, useLocation, useNavigate } from "react-router-dom";
@@ -13,19 +13,43 @@ const Navbar = () => {
     const [addressDropdownOpen, setAddressDropdownOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
     const navigate = useNavigate();
-    
-    const handleSelectAddress = (addr) => {
+
+    // Memoize cart item count calculation
+    const cartItemCount = useMemo(() => {
+        return cart?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0;
+    }, [cart]);
+
+    // Use useCallback to memoize address selection handler
+    const handleSelectAddress = useCallback((addr) => {
         dispatch(selectUserCheckoutAddress(addr));
         setAddressDropdownOpen(false);
-    };
+    }, [dispatch]);
 
-    const handleGlobalSearch = () => {
+    // Use useCallback to memoize global search handler
+    const handleGlobalSearch = useCallback(() => {
         if (searchTerm && searchTerm.trim() !== "") {
             navigate(`/products?keyword=${encodeURIComponent(searchTerm)}`);
         } else {
             navigate(`/products`);
         }
-    };
+    }, [searchTerm, navigate]);
+
+    // Use useCallback to memoize search input change handler
+    const handleSearchChange = useCallback((e) => {
+        setSearchTerm(e.target.value);
+    }, []);
+
+    // Use useCallback to memoize keyboard handler
+    const handleKeyDown = useCallback((e) => {
+        if (e.key === 'Enter') {
+            handleGlobalSearch();
+        }
+    }, [handleGlobalSearch]);
+
+    // Use useCallback to toggle address dropdown
+    const toggleAddressDropdown = useCallback(() => {
+        setAddressDropdownOpen((v) => !v);
+    }, []);
 
     useEffect(() => {
         dispatch(getUserAddresses());
@@ -43,7 +67,7 @@ const Navbar = () => {
                 <div className="hidden md:flex items-center mx-4 relative">
                     <button
                         className="flex items-center focus:outline-none"
-                        onClick={() => setAddressDropdownOpen((v) => !v)}
+                        onClick={toggleAddressDropdown}
                     >
                         <FaMapMarkerAlt className="mr-1 text-lg" />
                         <div className="flex flex-col leading-tight text-left">
@@ -80,14 +104,14 @@ const Navbar = () => {
                 </div>
 
                 <div className="flex flex-1 mx-4 max-w-xl">
-                    <input 
+                    <input
                         className="flex-1 px-2 py-1 text-black rounded-l"
                         placeholder="Search products..."
                         value={searchTerm}
-                        onChange={e => setSearchTerm(e.target.value)}
-                        onKeyDown={e => { if (e.key === 'Enter') handleGlobalSearch(); }}
+                        onChange={handleSearchChange}
+                        onKeyDown={handleKeyDown}
                     />
-                    <button 
+                    <button
                         className="bg-yellow-400 px-3 rounded-r"
                         onClick={handleGlobalSearch}
                     >
@@ -114,7 +138,7 @@ const Navbar = () => {
                     <Link to="/cart" className="relative flex items-center">
                         <Badge
                             showZero
-                            badgeContent={cart?.reduce((sum, item) => sum + (item.quantity || 0), 0) || 0}
+                            badgeContent={cartItemCount}
                             color="primary"
                             overlap="circular"
                             anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
